@@ -1,10 +1,7 @@
 base:
   build: .
   ports:
-    - "9000:9000"
-  environment:
-    PORT: 9000
-    NODE_PATH: app/src
+    - "9000:9000"    
   container_name: control-tower
 mongo:
   image: mongo

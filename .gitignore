@@ -2,3 +2,4 @@ node_modules/
 dev.env
 prod.env
 staging.env
+npm-debug.log

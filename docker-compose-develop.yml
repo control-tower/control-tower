@@ -4,13 +4,13 @@ develop:
     service: base
   ports:
     - "35729:35729"
-  environment:
-    NODE_ENV: dev
+  env_file:
+    - dev.env
   command: develop
   links:
     - mongo
   volumes:
-    - ./app:/opt/api-gateway/app
+    - ./app:/opt/control-tower/app
 
 mongo:
   extends:

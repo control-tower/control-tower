@@ -63,8 +63,8 @@ module.exports = async function init() {
         config: {
             twitter: {
                 active: true,
-                consumerKey: '',
-                consumerSecret: '',
+                consumerKey: process.env.TWITTER_CONSUMER_KEY,
+                consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
             },
             google: {
                 active: false,
@@ -83,7 +83,7 @@ module.exports = async function init() {
             },
             jwt: {
                 active: true,
-                secret: '',
+                secret: process.env.JWT_SECRET,
                 passthrough: true,
                 expiresInMinutes: 0,
             },
