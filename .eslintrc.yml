@@ -1,0 +1,41 @@
+---
+extends: airbnb
+env:
+  node: true
+  es6: true
+parser: babel-eslint
+parserOptions:
+  sourceType: module
+  ecmaVersion: 6
+rules:
+  max-len: [1, 120, 2, {"ignoreUrls":true}]
+  curly: [2, "multi-line"]
+  comma-dangle: [2, always-multiline]
+  eqeqeq: [2, "allow-null"]
+  no-shadow: 1
+  no-param-reassign: [2, { "props": false }]
+  indent: [2, 4]
+  padded-blocks: [2, { "switches": "always", "classes": "always" }]
+  quotes:
+    - 2
+    - single
+    - allowTemplateLiterals: true
+settings:
+  import/resolver:
+    node:
+      extensions:
+        # if unset, default is just '.js', but it must be re-added explicitly if set
+        - .js
+        - .jsx
+        - .es6
+        - .coffee
+
+      paths:
+        # an array of absolute paths which will also be searched
+        # think NODE_PATH
+        - /usr/local/share/global_modules
+
+      # this is technically for identifying `node_modules` alternate names
+      moduleDirectory:
+        - node_modules # defaults to 'node_modules', but...
+        - app/src

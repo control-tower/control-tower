@@ -1,0 +1,22 @@
+{
+    "mongodb": {
+        "database": "control_tower_db",
+        "host": "192.168.99.100",
+        "port": 27017
+    },
+    "logger": {
+        "name": "API-Gateway-DEV",
+        "level": "debug",
+        "toFile": false,
+        "dirLogFile": null
+    },
+    "server": {
+        "port": 9000,
+        "publicUrl": "http://control.tower.dev:9000",
+        "internalUrl": "http://192.168.99.100:9000",
+        "cookie": {
+            "domain": "control.tower.dev"
+        },
+        "sessionKey": "control-tower-key"
+    }
+}

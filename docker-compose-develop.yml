@@ -1,0 +1,18 @@
+develop:
+  extends:
+    file: base.yml
+    service: base
+  ports:
+    - "35729:35729"
+  environment:
+    NODE_ENV: dev
+  command: develop
+  links:
+    - mongo
+  volumes:
+    - ./app:/opt/api-gateway/app
+
+mongo:
+  extends:
+    file: base.yml
+    service: mongo

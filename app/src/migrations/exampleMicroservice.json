@@ -1,0 +1,20 @@
+{
+    "name": "Usuarios",
+    "active": true,
+    "url": "http://localhost:8080",
+    "pathInfo": "/info.json"
+
+    "endpoints:[{
+        "path":"/users",
+        "owner": "users",
+        "method": "GET",
+        "redirect":[{
+            "method":"GET",
+            "host": "http://localhost:5555",
+            "path": "/api/v1/users"
+        }
+    }],
+    "swagger":{
+        "miswagger":{}
+    }
+}
