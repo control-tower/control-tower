@@ -42,7 +42,7 @@ module.exports = async function init() {
     await new Plugin({
         name: 'stadistics',
         description: 'Add stadistics info',
-        mainFile: 'stadistics-plugin',
+        mainFile: 'ct-stadistics-plugin',
         active: true,
     }).save();
     await new Plugin({
@@ -58,7 +58,7 @@ module.exports = async function init() {
     await new Plugin({
         name: 'oauth',
         description: 'Plugin oauth with passport',
-        mainFile: 'oauth-plugin',
+        mainFile: 'ct-oauth-plugin',
         active: true,
         config: {
             twitter: {
