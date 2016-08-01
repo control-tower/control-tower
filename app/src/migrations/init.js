@@ -1,6 +1,8 @@
 const Plugin = require('models/plugin.model');
 const Microservice = require('models/microservice.model');
 const Endpoint = require('models/endpoint.model');
+const Version = require('models/version.model');
+const appConstants = require('app.constants');
 const logger = require('logger');
 
 module.exports = async function init() {
@@ -93,4 +95,6 @@ module.exports = async function init() {
 
     await Microservice.remove({});
     await Endpoint.remove({});
+    await Version.remove({});
+    await new Version({ name: appConstants.ENDPOINT_VERSION, version: 1 }).save();
 };

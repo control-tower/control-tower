@@ -5,5 +5,12 @@
     },
     "server":{
         "internalUrl": "INTERNAL_URL"
+    },
+    "consul": {
+        "url": "CONSUL_URL",
+        "basicAuth":{
+            "username": "CONSUL_BASICAUTH_USERNAME",
+            "password": "CONSUL_BASICAUTH_PASSWORD"
+        }
     }
 }

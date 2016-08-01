@@ -22,6 +22,7 @@ module.exports = function (grunt) {
             cron: {
                 options: {
                     script: 'app/index-crons.js',
+                    debug: false,
                     node_env: 'dev',
                     port: process.env.PORT,
                     output: 'started',

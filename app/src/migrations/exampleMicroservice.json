@@ -12,7 +12,18 @@
             "method":"GET",
             "host": "http://localhost:5555",
             "path": "/api/v1/users"
-        }
+        },
+        "filters":[{
+            "name": "test",
+            "url": "/datasets/:dataset",
+            "params":[{
+                "source": "dataset",
+                "target": "dataset"
+            }],
+            "compare":{
+                "provider": "carto"
+            }
+        }]
     }],
     "swagger":{
         "miswagger":{}

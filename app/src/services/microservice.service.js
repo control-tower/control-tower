@@ -1,6 +1,9 @@
 const logger = require('logger');
+const config = require('config');
+const appConstants = require('app.constants');
 const MicroserviceModel = require('models/microservice.model');
 const EndpointModel = require('models/endpoint.model');
+const VersionModel = require('models/version.model');
 const MicroserviceDuplicated = require('errors/microserviceDuplicated');
 const MicroserviceNotExist = require('errors/microserviceNotExist');
 const request = require('request-promise');
@@ -16,14 +19,43 @@ const MICRO_STATUS_ERROR = 'error';
 
 class Microservice {
 
-    static async saveEndpoint(endpoint, micro) {
-        logger.info(`Saving endpoint ${endpoint.path}`);
+    static getFilters(endpoint) {
+        logger.debug('Checking filters in endpoint');
+        let filters = null;
+        if (endpoint.filters) {
+            for (let i = 0, length = endpoint.filters.length; i < length; i++) {
+                logger.debug(endpoint.filters[i]);
+                let pathKeys = [];
+                const pathRegex = pathToRegexp(endpoint.filters[i].path, pathKeys);
+                if (pathKeys && pathKeys.length > 0) {
+                    pathKeys = pathKeys.map((key) => key.name);
+                }
+                if (!filters) {
+                    filters = [];
+                }
+                filters.push({
+                    name: endpoint.filters[i].name,
+                    path: endpoint.filters[i].path,
+                    method: endpoint.filters[i].method,
+                    pathRegex,
+                    pathKeys,
+                    params: endpoint.filters[i].params,
+                    compare: endpoint.filters[i].compare,
+                });
+            }
+        }
+        return filters;
+    }
+
+    static async saveEndpoint(endpoint, micro, version) {
+        logger.info(`Saving endpoint ${endpoint.path} with version ${version}`);
         logger.debug(`Searching if exist ${endpoint.path} in endpoints`);
         endpoint.redirect.url = micro.url;
         // searching
         const oldEndpoint = await EndpointModel.findOne({
             path: endpoint.path,
             method: endpoint.method,
+            version,
         }).exec();
         if (oldEndpoint) {
             logger.debug(`Exist path. Check if exist redirect with url ${endpoint.redirect.url}`);
@@ -32,15 +64,16 @@ class Microservice {
                 method: endpoint.method,
                 'redirect.url': endpoint.redirect.url,
             }).exec();
-            logger.debug('Entra', oldRedirect);
             if (!oldRedirect) {
                 logger.debug('Not exist redirect');
+                endpoint.redirect.filters = Microservice.getFilters(endpoint);
                 oldEndpoint.redirect.push(endpoint.redirect);
                 await oldEndpoint.save();
             } else {
                 logger.debug('Exist redirect. Updating', oldRedirect);
                 oldRedirect.redirect[0].method = endpoint.redirect.method;
                 oldRedirect.redirect[0].path = endpoint.redirect.path;
+                oldRedirect.redirect[0].filters = Microservice.getFilters(endpoint);
                 await oldRedirect.save();
             }
 
@@ -52,6 +85,9 @@ class Microservice {
                 pathKeys = pathKeys.map((key) => key.name);
             }
             logger.debug('Saving new endpoint', pathKeys);
+            endpoint.redirect.filters = Microservice.getFilters(endpoint);
+            logger.debug('filters', endpoint.redirect.filters);
+            logger.debug('regesx', pathRegex);
             await new EndpointModel({
                 path: endpoint.path,
                 method: endpoint.method,
@@ -59,22 +95,34 @@ class Microservice {
                 pathKeys,
                 authenticated: endpoint.authenticated,
                 redirect: [endpoint.redirect],
+                version,
             }).save();
         }
     }
 
-    static async saveEndpoints(micro, info) {
+    static async saveEndpoints(micro, info, version) {
         logger.info('Saving endpoints');
         if (info.endpoints && info.endpoints.length > 0) {
             for (let i = 0, length = info.endpoints.length; i < length; i++) {
-                await Microservice.saveEndpoint(info.endpoints[i], micro);
+                await Microservice.saveEndpoint(info.endpoints[i], micro, version);
             }
         }
     }
 
-    static async getInfoMicroservice(micro) {
-        logger.info(`Obtaining info of the microservice with name ${micro.name}`);
-        const urlInfo = url.resolve(micro.url, micro.pathInfo);
+    static generateUrlInfo(urlInfo, token, internalUrl) {
+        logger.debug('Generating url info to microservice with url', urlInfo);
+        const queryParams = `token=${token}&url=${internalUrl}`;
+        if (urlInfo.indexOf('?') >= 0) {
+            return `${urlInfo}&${queryParams}`;
+        }
+        return `${urlInfo}?${queryParams}`;
+    }
+
+    static async getInfoMicroservice(micro, version) {
+        logger.info(`Obtaining info of the microservice with name ${micro.name} and version ${version}`);
+        let urlInfo = url.resolve(micro.url, micro.pathInfo);
+        const token = crypto.randomBytes(20).toString('hex');
+        urlInfo = Microservice.generateUrlInfo(urlInfo, token, config.get('server.internalUrl'));
         logger.debug(`Doing request to ${urlInfo}`);
         let result = null;
         try {
@@ -84,10 +132,17 @@ class Microservice {
             });
             logger.debug('Updating microservice');
             micro.endpoints = result.endpoints;
-            micro.swagger = result.swagger;
+            micro.swagger = JSON.stringify(result.swagger);
             micro.updatedAt = Date.now();
+            micro.token = token;
+            if (result.tags) {
+                if (!micro.tags) {
+                    micro.tags = [];
+                }
+                micro.tags = micro.tags.concat(result.tags);
+            }
             await micro.save();
-            Microservice.saveEndpoints(micro, result);
+            await Microservice.saveEndpoints(micro, result, version);
             return true;
         } catch (err) {
             logger.error(err);
@@ -95,11 +150,17 @@ class Microservice {
         }
     }
 
-    static async register(info) {
+    static async register(info, ver) {
+        let version = ver;
+        if (!version) {
+            const versionFound = await VersionModel.findOne({ name: appConstants.ENDPOINT_VERSION });
+            version = versionFound.version;
+        }
         logger.info(`Registering new microservice with name ${info.name} and url ${info.url}`);
         logger.debug('Search if exist');
         const exist = await MicroserviceModel.findOne({
             url: info.url,
+            version,
         });
         if (exist) {
             throw new MicroserviceDuplicated(`Microservice with url ${info.url} exists`);
@@ -113,10 +174,12 @@ class Microservice {
             pathInfo: info.pathInfo,
             swagger: info.swagger,
             token: crypto.randomBytes(20).toString('hex'),
+            tags: info.tags,
+            version,
         }).save();
 
         logger.debug('Saved correct');
-        const correct = await Microservice.getInfoMicroservice(micro);
+        const correct = await Microservice.getInfoMicroservice(micro, version);
         if (correct) {
             logger.info(`Updating state of microservice with name ${micro.name}`);
             micro.status = MICRO_STATUS_ACTIVE;
@@ -206,6 +269,31 @@ class Microservice {
             Microservice.checkLiveMicro(microservices[i]);
         }
         logger.info('Finished checking');
+    }
+
+    static async registerPackMicroservices(microservices) {
+        logger.info('Refreshing all microservices');
+        logger.debug('Obtaining new version');
+        const versionFound = await VersionModel.findOne({ name: appConstants.ENDPOINT_VERSION });
+        logger.debug('Found', versionFound);
+        const newVersion = versionFound.version + 1;
+        logger.debug('New version is ', newVersion);
+
+        if (microservices) {
+            for (let i = 0, length = microservices.length; i < length; i++) {
+                try {
+                    if (microservices[i].name !== null && microservices[i].url !== null) {
+                        logger.debug(`Registering microservice with name ${microservices[i].name}`);
+                        await Microservice.register(microservices[i], newVersion);
+                    }
+                } catch (err) {
+                    logger.error('Error registering microservice', err);
+                }
+            }
+        }
+        logger.info('Updating version of ENDPOINT_VERSION');
+        await VersionModel.update({ name: appConstants.ENDPOINT_VERSION }, { $set: { version: newVersion } });
+        logger.info('Registered successfully');
     }
 
 }

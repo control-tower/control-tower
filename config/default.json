@@ -18,5 +18,14 @@
             "domain": "control.tower.dev"
         },
         "sessionKey": "control-tower-key"
+    },
+    "consul": {
+        "url": "",
+        "basicAuth":{
+            "username": "",
+            "password": ""
+        },
+        "getServicesPath": "/services",
+        "getServicePath": "/v1/catalog/service/"
     }
 }

@@ -3,10 +3,14 @@ const logger = require('logger');
 const DispatcherService = require('services/dispatcher.service.js');
 const EndpointNotFound = require('errors/endpointNotFound');
 const NotAuthenticated = require('errors/notAuthenticated');
+const FilterError = require('errors/filterError');
+const MicroserviceModel = require('models/microservice.model');
 const fs = require('fs');
 const router = new Router();
 const Promise = require('bluebird');
-const restling = require('restling');
+// const restling = require('restling');
+const requestPromise = require('request-promise');
+var request = require('request');
 
 const unlink = async(file) =>
     new Promise((resolve, reject) => {
@@ -29,9 +33,10 @@ const ALLOWED_HEADERS = [
 
 function getHeadersFromResponse(response) {
     const validHeaders = {};
-    for (let [key, value] of Dict.entries(response)) {
-        if (ALLOWED_HEADERS.indexOf(key.toLowerCase()) > -1) {
-            validHeaders[key] = value;
+    const keys = Object.keys(response.headers);
+    for (let i = 0, length = keys.length; i < length; i++) {
+        if (ALLOWED_HEADERS.indexOf(keys[1].toLowerCase()) > -1) {
+            validHeaders[keys[i]] = response.headers[keys[i]];
         }
     }
     return validHeaders;
@@ -57,28 +62,39 @@ class DispatcherRouter {
         logger.info(`Dispatch url ${ctx.request.url} and method ${ctx.request.method}`);
         try {
             logger.debug('Obtaining config request');
-            const infoRequest = await DispatcherService.getRequests(ctx);
+            const infoRequest = await DispatcherService.getRequest(ctx);
             const configRequest = infoRequest.configRequest;
             logger.debug('Config request', configRequest);
             logger.debug('Sending request');
             // save information about redirect
             ctx.state = DispatcherRouter.getInfoRedirect(ctx, infoRequest);
             configRequest.followRedirects = false;
-            const result = await restling.request(configRequest.uri, configRequest);
-            // set headers
-            ctx.set(getHeadersFromResponse(result.response));
-            ctx.status = result.response.statusCode;
-            ctx.body = result.data;
-            ctx.response.type = result.response.headers['content-type'];
+            if (!configRequest.binary) {
+                const result = await requestPromise(configRequest);
+                // set headers
+                ctx.set(getHeadersFromResponse(result));
+                ctx.status = result.statusCode;
+                ctx.body = result.body;
+                logger.debug(result);
+                ctx.response.type = result.headers['content-type'];
+            } else {
+                logger.info('Binary request');
+                ctx.body = request(configRequest);
+            }
         } catch (err) {
             logger.error(err);
             if (err instanceof EndpointNotFound) {
-                logger.debug('Endpoint not found');
+                logger.error('Endpoint not found');
                 ctx.throw(404, 'Endpoint not found');
                 return;
             }
+            if (err instanceof FilterError) {
+                logger.error('Filter error', err);
+                ctx.throw(500, err.message);
+                return;
+            }
             if (err instanceof NotAuthenticated) {
-                logger.debug('Not authorized');
+                logger.error('Not authorized');
                 ctx.throw(401, err.message);
                 return;
             }
@@ -116,10 +132,24 @@ class DispatcherRouter {
 
 }
 
-router.get('/*', DispatcherRouter.dispatch);
-router.post('/*', DispatcherRouter.dispatch);
-router.delete('/*', DispatcherRouter.dispatch);
-router.put('/*', DispatcherRouter.dispatch);
-router.patch('/*', DispatcherRouter.dispatch);
+async function authMicroservice(ctx, next) {
+    if (ctx.headers && ctx.headers.authentication) {
+        logger.debug('Authenticated microservice with token: ', ctx.headers.authentication);
+        const service = await MicroserviceModel.findOne({
+            token: ctx.headers.authentication,
+        }, { swagger: 0 });
+        if (service) {
+            ctx.state.microservice = service;
+        }
+    }
+
+    await next();
+}
+
+router.get('/*', authMicroservice, DispatcherRouter.dispatch);
+router.post('/*', authMicroservice, DispatcherRouter.dispatch);
+router.delete('/*', authMicroservice, DispatcherRouter.dispatch);
+router.put('/*', authMicroservice, DispatcherRouter.dispatch);
+router.patch('/*', authMicroservice, DispatcherRouter.dispatch);
 
 module.exports = router;
