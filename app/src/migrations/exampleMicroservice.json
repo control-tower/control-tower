@@ -3,7 +3,6 @@
     "active": true,
     "url": "http://localhost:8080",
     "pathInfo": "/info.json"
-
     "endpoints:[{
         "path":"/users",
         "owner": "users",
@@ -17,8 +16,7 @@
             "name": "test",
             "url": "/datasets/:dataset",
             "params":[{
-                "source": "dataset",
-                "target": "dataset"
+                "dataset": "dataset"
             }],
             "compare":{
                 "provider": "carto"

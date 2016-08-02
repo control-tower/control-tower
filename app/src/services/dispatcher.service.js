@@ -88,6 +88,10 @@ class Dispatcher {
                         valid = false;
                         break;
                     }
+                    if (!redirect.data) {
+                        redirect.data = {};
+                    }
+                    redirect.data[redirect.filters[i].name] = filterValue;
                 }
             }
             if (valid) {
@@ -134,6 +138,7 @@ class Dispatcher {
         try {
             logger.debug('Doing requests');
             const results = await Promise.all(promisesRequest);
+            // TODO: Add support to serveral filter by each endpoint
             for (let i = 0, length = results.length; i < length; i++) {
                 if (results[i].statusCode === 200) {
                     filters[i].result = {
@@ -220,6 +225,18 @@ class Dispatcher {
                 logger.debug('Method is %s. Adding body', configRequest.method);
                 configRequest.data = ctx.request.body;
             }
+            if (redirectEndpoint.data) {
+                logger.debug('Adding data');
+                if (endpoint.authenticated) {
+                    redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, { loggedUser: Dispatcher.isLogged() });
+                }
+                if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
+                    configRequest.query = configRequest.query || {};
+                    configRequest.query = Object.assign({}, configRequest.query, redirectEndpoint.data);
+                } else {
+                    configRequest.data = Object.assign({}, configRequest.data, redirectEndpoint.data);
+                }
+            }
             if (ctx.request.body.files) {
                 logger.debug('Adding files');
                 const files = ctx.request.body.files;
@@ -236,20 +253,20 @@ class Dispatcher {
                 logger.debug('Adding headers');
                 configRequest.headers = ctx.request.headers;
             }
-            if (endpoint.authenticated) {
-                logger.debug('Adding user in request.');
-                if (configRequest.method === 'POST' || configRequest.method === 'PATCH' ||
-                    configRequest.method === 'PUT') {
-                    logger.debug('Method is %s. Adding body', configRequest.method);
-                    configRequest.data = Object.extend({}, configRequest.data, { loggedUser: Dispatcher.getLoggedUser() });
-                } else {
-                    if (ctx.request.search) {
-                        configRequest.uri = `${configRequest.uri}&loggedUser=${Dispatcher.getLoggedUser()}`;
-                    } else {
-                        configRequest.uri = `${configRequest.uri}?loggedUser=${Dispatcher.getLoggedUser()}`;
-                    }
-                }
-            }
+            // if (endpoint.authenticated) {
+            //     logger.debug('Adding user in request.');
+            //     if (configRequest.method === 'POST' || configRequest.method === 'PATCH' ||
+            //         configRequest.method === 'PUT') {
+            //         logger.debug('Method is %s. Adding body', configRequest.method);
+            //         configRequest.data = Object.extend({}, configRequest.data, { loggedUser: Dispatcher.getLoggedUser() });
+            //     } else {
+            //         if (ctx.request.search) {
+            //             configRequest.uri = `${configRequest.uri}&loggedUser=${Dispatcher.getLoggedUser()}`;
+            //         } else {
+            //             configRequest.uri = `${configRequest.uri}?loggedUser=${Dispatcher.getLoggedUser()}`;
+            //         }
+            //     }
+            // }
 
             logger.debug('Returning config', configRequest);
             return {
