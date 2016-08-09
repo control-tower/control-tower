@@ -153,7 +153,9 @@ class Microservice {
     static async register(info, ver) {
         let version = ver;
         if (!version) {
-            const versionFound = await VersionModel.findOne({ name: appConstants.ENDPOINT_VERSION });
+            const versionFound = await VersionModel.findOne({
+                name: appConstants.ENDPOINT_VERSION,
+            });
             version = versionFound.version;
         }
         logger.info(`Registering new microservice with name ${info.name} and url ${info.url}`);
@@ -163,8 +165,15 @@ class Microservice {
             version,
         });
         if (exist) {
-            throw new MicroserviceDuplicated(`Microservice with url ${info.url} exists`);
+            if (!config.get('microservice.overrideDuplicated')) {
+                logger.debug('Not override activated');
+                throw new MicroserviceDuplicated(`Microservice with url ${info.url} exists`);
+            } else {
+                logger.debug('Override activated, Removing old version of microservice');
+                await Microservice.remove(exist._id); // eslint-disable-line no-underscore-dangle
+            }
         }
+
         logger.debug(`Creating microservice with status ${MICRO_STATUS_PENDING}`);
 
         const micro = await new MicroserviceModel({
@@ -190,6 +199,7 @@ class Microservice {
             micro.status = MICRO_STATUS_ERROR;
             await micro.save();
         }
+
 
         return micro;
     }
@@ -274,7 +284,9 @@ class Microservice {
     static async registerPackMicroservices(microservices) {
         logger.info('Refreshing all microservices');
         logger.debug('Obtaining new version');
-        const versionFound = await VersionModel.findOne({ name: appConstants.ENDPOINT_VERSION });
+        const versionFound = await VersionModel.findOne({
+            name: appConstants.ENDPOINT_VERSION,
+        });
         logger.debug('Found', versionFound);
         const newVersion = versionFound.version + 1;
         logger.debug('New version is ', newVersion);
@@ -292,7 +304,13 @@ class Microservice {
             }
         }
         logger.info('Updating version of ENDPOINT_VERSION');
-        await VersionModel.update({ name: appConstants.ENDPOINT_VERSION }, { $set: { version: newVersion } });
+        await VersionModel.update({
+            name: appConstants.ENDPOINT_VERSION,
+        }, {
+            $set: {
+                version: newVersion,
+            },
+        });
         logger.info('Registered successfully');
     }
 

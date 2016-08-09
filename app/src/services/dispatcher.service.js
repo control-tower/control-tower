@@ -8,7 +8,7 @@ const NotAuthenticated = require('errors/notAuthenticated');
 const FilterError = require('errors/filterError');
 const pathToRegexp = require('path-to-regexp');
 const requestPromise = require('request-promise');
-const rest = require('restler');
+const fs = require('fs');
 
 class Dispatcher {
 
@@ -208,15 +208,14 @@ class Dispatcher {
             let configRequest = { // eslint-disable-line prefer-const
                 uri: finalUrl,
                 method: redirectEndpoint.method,
-                // json: true,
                 // https://github.com/request/request-promise#user-content-get-a-rejection-only-if-the-request-failed-for-technical-reasons
                 simple: false,
                 resolveWithFullResponse: true,
                 binary: endpoint.binary,
             };
-            if (ctx.request.search) {
+            if (ctx.request.query) {
                 logger.debug('Adding query params');
-                configRequest.uri = `${configRequest.uri}${ctx.request.search}`;
+                configRequest.qs = ctx.request.query;
             }
 
             logger.debug('Create request to %s', configRequest.uri);
@@ -231,8 +230,11 @@ class Dispatcher {
                     redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, { loggedUser: Dispatcher.isLogged() });
                 }
                 if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
-                    configRequest.query = configRequest.query || {};
-                    configRequest.query = Object.assign({}, configRequest.query, redirectEndpoint.data);
+                    configRequest.qs = configRequest.qs || {};
+                    const keys = Object.keys(redirectEndpoint.data);
+                    for (let i = 0, length = keys.length; i < length; i++) {
+                        configRequest.qs[keys[i]] = JSON.stringify(redirectEndpoint.data[keys[i]]);
+                    }
                 } else {
                     configRequest.data = Object.assign({}, configRequest.data, redirectEndpoint.data);
                 }
@@ -243,7 +245,7 @@ class Dispatcher {
                 let formData = {}; // eslint-disable-line prefer-const
                 for (const key in files) { // eslint-disable-line no-restricted-syntax
                     if ({}.hasOwnProperty.call(files, key)) {
-                        formData[key] = rest.file(files[key].path);
+                        formData[key] = fs.createReadStream(files[key].path);
                     }
                 }
                 configRequest.data = Object.assign(configRequest.data || {}, formData);
@@ -267,6 +269,15 @@ class Dispatcher {
             //         }
             //     }
             // }
+
+            logger.debug('Checking if is json or formdata request');
+            if (configRequest.multipart) {
+                logger.debug('Is FormData request');
+                configRequest.formData = configRequest.data;
+            } else {
+                logger.debug('Is JSON request');
+                configRequest.json = configRequest.data;
+            }
 
             logger.debug('Returning config', configRequest);
             return {

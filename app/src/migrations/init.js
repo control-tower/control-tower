@@ -23,8 +23,8 @@ module.exports = async function init() {
         config: {
             passthrough: true,
             credentials: {
-                name: 'Ra',
-                pass: 'ra',
+                name: process.env.BASIC_AUTH_USERNAME,
+                pass: process.env.BASIC_AUTH_PASSWORD,
                 role: 'ADMIN',
             },
         },
@@ -53,8 +53,8 @@ module.exports = async function init() {
         mainFile: 'plugins/sessionMongo',
         active: true,
         config: {
-            cookieDomain: null,
-            sessionKey: 'SessionKeyCustom',
+            cookieDomain: process.env.COOKIE_DOMAIN,
+            sessionKey: process.env.SESSION_KEY,
         },
     }).save();
     await new Plugin({
@@ -82,6 +82,8 @@ module.exports = async function init() {
             },
             local: {
                 active: true,
+                sparkpostKey: process.env.SPARKPOST_KEY,
+                confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
             },
             jwt: {
                 active: true,
@@ -89,7 +91,7 @@ module.exports = async function init() {
                 passthrough: true,
                 expiresInMinutes: 0,
             },
-            publicUrl: 'http://control.tower.dev:9000',
+            publicUrl: process.env.PUBLIC_URL,
         },
     }).save();
 

@@ -13,11 +13,14 @@
     "server": {
         "port": 9000,
         "publicUrl": "http://control.tower.dev:9000",
-        "internalUrl": "http://192.168.99.100:9000",
+        "internalUrl": "http://localhost:9000",
         "cookie": {
             "domain": "control.tower.dev"
         },
         "sessionKey": "control-tower-key"
+    },
+    "microservice":{
+        "overrideDuplicated": true
     },
     "consul": {
         "url": "",

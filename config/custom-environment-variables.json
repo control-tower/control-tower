@@ -4,7 +4,8 @@
         "port": "MONGO_PORT_27017_TCP_PORT"
     },
     "server":{
-        "internalUrl": "INTERNAL_URL"
+        "internalUrl": "INTERNAL_URL",
+        "publicUrl": "PUBLIC_URL"
     },
     "consul": {
         "url": "CONSUL_URL",
