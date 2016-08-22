@@ -4,6 +4,7 @@ const logger = require('logger');
 const MicroserviceService = require('services/microservice.service');
 const MicroserviceDuplicated = require('errors/microserviceDuplicated');
 const MicroserviceNotExist = require('errors/microserviceNotExist');
+const Utils = require('utils');
 
 const router = new Router({
     prefix: '/microservice',
@@ -46,8 +47,8 @@ class MicroserviceRouter {
 
 }
 
-router.get('/', MicroserviceRouter.get);
+router.get('/', Utils.isLogged, Utils.isAdmin, MicroserviceRouter.get);
 router.post('/', MicroserviceRouter.register);
-router.delete('/:id', MicroserviceRouter.delete);
+router.delete('/:id', Utils.isLogged, Utils.isAdmin, MicroserviceRouter.delete);
 
 module.exports = router;

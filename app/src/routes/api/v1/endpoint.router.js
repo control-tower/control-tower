@@ -1,6 +1,7 @@
 const Router = require('koa-router');
 const Endpoint = require('models/endpoint.model');
 const logger = require('logger');
+const Utils = require('utils');
 
 const router = new Router({
     prefix: '/endpoint',
@@ -15,6 +16,6 @@ class EndpointRouter {
 
 }
 
-router.get('/', EndpointRouter.get);
+router.get('/', Utils.isLogged, Utils.isAdmin, EndpointRouter.get);
 
 module.exports = router;
