@@ -17,7 +17,7 @@ class Notification {
         this.notify = (opts) => new Promise((resolve, reject) => {
             instapush.notify(opts, (err, response) => {
                 if (response.error) {
-                    reject(err);
+                    reject(response);
                     return;
                 }
                 resolve(response);
@@ -34,6 +34,21 @@ class Notification {
                     name,
                     url,
                     error: err.message,
+                },
+            });
+        } catch (er) {
+            logger.error(er);
+        }
+    }
+
+    async sendAlertMicroserviceRestore(name, url) {
+        logger.info(`Sending event of microserviceRestore with name ${name}`);
+        try {
+            await this.notify({
+                event: config.get('instapush.events.microserviceRestore'),
+                trackers: {
+                    name,
+                    url,
                 },
             });
         } catch (er) {

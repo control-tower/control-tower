@@ -41,7 +41,8 @@
         "id": "",
         "secret": "",
         "events": {
-            "microserviceDown": "microserviceDown"
+            "microserviceDown": "microserviceDown",
+            "microserviceRestore": "microserviceRestore"
         }
     }
 }
