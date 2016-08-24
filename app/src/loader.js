@@ -8,6 +8,7 @@ const config = require('config');
 function getGeneralConfig() {
     return {
         mongoUri: `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`,
+        application: config.get('application'),
     };
 }
 

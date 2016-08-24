@@ -10,7 +10,7 @@ const router = new Router();
 const Promise = require('bluebird');
 // const restling = require('restling');
 const requestPromise = require('request-promise');
-var request = require('request');
+const request = require('request');
 
 const unlink = async(file) =>
     new Promise((resolve, reject) => {
@@ -64,18 +64,19 @@ class DispatcherRouter {
             logger.debug('Obtaining config request');
             const infoRequest = await DispatcherService.getRequest(ctx);
             const configRequest = infoRequest.configRequest;
-            logger.debug('Config request', configRequest);
+
             logger.debug('Sending request');
             // save information about redirect
             ctx.state = DispatcherRouter.getInfoRedirect(ctx, infoRequest);
             configRequest.followRedirects = false;
+
+            logger.debug('Config request', configRequest);
             if (!configRequest.binary) {
                 const result = await requestPromise(configRequest);
                 // set headers
                 ctx.set(getHeadersFromResponse(result));
                 ctx.status = result.statusCode;
                 ctx.body = result.body;
-                logger.debug(result);
                 ctx.response.type = result.headers['content-type'];
             } else {
                 logger.info('Binary request');

@@ -29,6 +29,7 @@ function middleware(app, plugin) {
                 pass,
             } = ctx.basicAuth;
             if (name === plugin.config.credentials.name && pass === plugin.config.credentials.pass) {
+                logger.debug('User logged');
                 ctx.state.user = {
                     name: plugin.config.credentials.name,
                     role: plugin.config.credentials.role,

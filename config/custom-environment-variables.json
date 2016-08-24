@@ -13,5 +13,10 @@
             "username": "CONSUL_BASICAUTH_USERNAME",
             "password": "CONSUL_BASICAUTH_PASSWORD"
         }
+    },
+    "instapush": {
+        "token": "INSTAPUSH_TOKEN",
+        "id": "INSTAPUSH_ID",
+        "secret": "INSTAPUSH_SECRET"
     }
 }

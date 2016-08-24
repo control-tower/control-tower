@@ -10,6 +10,14 @@ const pathToRegexp = require('path-to-regexp');
 const requestPromise = require('request-promise');
 const fs = require('fs');
 
+const ALLOWED_HEADERS = [
+    'cache-control',
+    'charset',
+    'location',
+    'host',
+    'content-type'
+];
+
 class Dispatcher {
 
     static getLoggedUser(ctx) {
@@ -47,8 +55,8 @@ class Dispatcher {
 
         if (filterValues) {
             for (let i = 0, length = filterValues.length; i < length; i++) {
-                if (filterValues[i].name === filter.name && filterValues[i].path === filter.path
-                    && filterValues[i].method === filter.method && filterValues[i].result.correct) {
+                if (filterValues[i].name === filter.name && filterValues[i].path === filter.path &&
+                    filterValues[i].method === filter.method && filterValues[i].result.correct) {
                     return filterValues[i].result.data;
                 }
             }
@@ -161,11 +169,24 @@ class Dispatcher {
         return endpoint;
     }
 
+    static getHeadersFromRequest(headers) {
+        let validHeaders = {};
+        const keys = Object.keys(headers);
+        for (let i = 0, length = keys.length; i < length; i++) {
+            if (ALLOWED_HEADERS.indexOf(keys[i].toLowerCase()) > -1) {
+                validHeaders[keys[i]] = headers[keys[i]];
+            }
+        }
+        return validHeaders;
+    }
+
     static async getRequest(ctx) {
         logger.info(`Searching endpoint where redirect url ${ctx.request.url}
             and method ${ctx.request.method}`);
         logger.debug('Obtaining version');
-        const version = await VersionModel.findOne({ name: appConstants.ENDPOINT_VERSION });
+        const version = await VersionModel.findOne({
+            name: appConstants.ENDPOINT_VERSION,
+        });
         logger.debug('Version found ', version);
         const parsedUrl = url.parse(ctx.request.url);
         logger.debug('Searching endpoints');
@@ -203,7 +224,7 @@ class Dispatcher {
             }
             logger.info('Dispathing request from %s to %s%s private endpoint.',
                 parsedUrl.pathname, redirectEndpoint.url, redirectEndpoint.path);
-
+            logger.debug('endpoint', endpoint);
             const finalUrl = await Dispatcher.buildUrl(parsedUrl.pathname, redirectEndpoint, endpoint);
             let configRequest = { // eslint-disable-line prefer-const
                 uri: finalUrl,
@@ -222,12 +243,19 @@ class Dispatcher {
             if (configRequest.method === 'POST' || configRequest.method === 'PATCH' ||
                 configRequest.method === 'PUT') {
                 logger.debug('Method is %s. Adding body', configRequest.method);
-                configRequest.data = ctx.request.body;
+                if (ctx.request.body.fields) {
+                    logger.debug('Is a form-data request');
+                    configRequest.body = ctx.request.body.fields;
+                } else {
+                    configRequest.body = ctx.request.body;
+                }
             }
             if (redirectEndpoint.data) {
                 logger.debug('Adding data');
                 if (endpoint.authenticated) {
-                    redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, { loggedUser: Dispatcher.isLogged() });
+                    redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
+                        loggedUser: Dispatcher.isLogged(),
+                    });
                 }
                 if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
                     configRequest.qs = configRequest.qs || {};
@@ -236,11 +264,11 @@ class Dispatcher {
                         configRequest.qs[keys[i]] = JSON.stringify(redirectEndpoint.data[keys[i]]);
                     }
                 } else {
-                    configRequest.data = Object.assign({}, configRequest.data, redirectEndpoint.data);
+                    configRequest.body = Object.assign({}, configRequest.body, redirectEndpoint.data);
                 }
             }
             if (ctx.request.body.files) {
-                logger.debug('Adding files');
+                logger.debug('Adding files', ctx.request.body.files);
                 const files = ctx.request.body.files;
                 let formData = {}; // eslint-disable-line prefer-const
                 for (const key in files) { // eslint-disable-line no-restricted-syntax
@@ -248,35 +276,27 @@ class Dispatcher {
                         formData[key] = fs.createReadStream(files[key].path);
                     }
                 }
-                configRequest.data = Object.assign(configRequest.data || {}, formData);
+                configRequest.body = Object.assign(configRequest.body || {}, formData);
+                delete configRequest.body.files;
+                // delete configRequest.body.fields;
                 configRequest.multipart = true;
             }
             if (ctx.request.headers) {
                 logger.debug('Adding headers');
-                configRequest.headers = ctx.request.headers;
+                configRequest.headers = Dispatcher.getHeadersFromRequest(ctx.request.headers);
             }
-            // if (endpoint.authenticated) {
-            //     logger.debug('Adding user in request.');
-            //     if (configRequest.method === 'POST' || configRequest.method === 'PATCH' ||
-            //         configRequest.method === 'PUT') {
-            //         logger.debug('Method is %s. Adding body', configRequest.method);
-            //         configRequest.data = Object.extend({}, configRequest.data, { loggedUser: Dispatcher.getLoggedUser() });
-            //     } else {
-            //         if (ctx.request.search) {
-            //             configRequest.uri = `${configRequest.uri}&loggedUser=${Dispatcher.getLoggedUser()}`;
-            //         } else {
-            //             configRequest.uri = `${configRequest.uri}?loggedUser=${Dispatcher.getLoggedUser()}`;
-            //         }
-            //     }
-            // }
+
 
             logger.debug('Checking if is json or formdata request');
             if (configRequest.multipart) {
                 logger.debug('Is FormData request');
-                configRequest.formData = configRequest.data;
+                configRequest.formData = configRequest.body;
+                delete configRequest.body;
+                delete configRequest.multipart;
             } else {
                 logger.debug('Is JSON request');
-                configRequest.json = configRequest.data;
+                configRequest.json = true;
+                delete configRequest.multipart;
             }
 
             logger.debug('Returning config', configRequest);

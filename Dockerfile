@@ -1,8 +1,8 @@
 FROM mhart/alpine-node:6.2
 MAINTAINER raul.requero@vizzuality.com
 
-ENV NAME api-gateway
-ENV USER gateway
+ENV NAME control-tower
+ENV USER control_tower
 
 RUN apk update && apk upgrade && \
     apk add --no-cache --update bash git openssh python alpine-sdk

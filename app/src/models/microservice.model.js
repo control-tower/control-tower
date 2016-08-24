@@ -11,6 +11,7 @@ const Microservice = new Schema({
     infoStatus: {
         _id: false,
         lastCheck: { type: Date, required: false },
+        numRetries: { type: Number, required: true, default: 0 },
         error: { type: String, required: false, trim: true },
     },
     updatedAt: { type: Date, default: Date.now, required: true },

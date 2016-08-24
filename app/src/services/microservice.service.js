@@ -10,7 +10,7 @@ const request = require('request-promise');
 const url = require('url');
 const crypto = require('crypto');
 const pathToRegexp = require('path-to-regexp');
-
+const NotificationService = require('services/notification.service.js');
 
 const MICRO_STATUS_PENDING = 'pending';
 const MICRO_STATUS_ACTIVE = 'active';
@@ -94,6 +94,7 @@ class Microservice {
                 pathRegex,
                 pathKeys,
                 authenticated: endpoint.authenticated,
+                binary: endpoint.binary,
                 redirect: [endpoint.redirect],
                 version,
             }).save();
@@ -253,15 +254,21 @@ class Microservice {
             });
             micro.infoStatus.lastCheck = new Date();
             micro.infoStatus.error = null;
+            micro.infoStatus.numRetries = 0;
             micro.status = MICRO_STATUS_ACTIVE;
             await micro.save();
             logger.debug(`Microservice ${micro.name} is live`);
         } catch (err) {
-            logger.error(err);
+            logger.error(`Microservice ${micro.name} is DOWN`, err);
             micro.infoStatus.lastCheck = new Date();
+            micro.infoStatus.numRetries++;
             micro.status = MICRO_STATUS_ERROR;
             micro.infoStatus.error = err.message;
             await micro.save();
+
+            if (micro.infoStatus.numRetries === 3) {
+                await NotificationService.sendAlertMicroserviceDown(micro.name, micro.url, err);
+            }
             return false;
         }
         return true;

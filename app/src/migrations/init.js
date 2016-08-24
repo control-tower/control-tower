@@ -16,20 +16,6 @@ module.exports = async function init() {
         active: true,
     }).save();
     await new Plugin({
-        name: 'basicAuth',
-        description: 'Add basic authentication',
-        mainFile: 'plugins/basicAuth',
-        active: true,
-        config: {
-            passthrough: true,
-            credentials: {
-                name: process.env.BASIC_AUTH_USERNAME,
-                pass: process.env.BASIC_AUTH_PASSWORD,
-                role: 'ADMIN',
-            },
-        },
-    }).save();
-    await new Plugin({
         name: 'timeRequest',
         description: 'Show time of the request',
         mainFile: 'plugins/timeRequest',
@@ -92,6 +78,20 @@ module.exports = async function init() {
                 expiresInMinutes: 0,
             },
             publicUrl: process.env.PUBLIC_URL,
+        },
+    }).save();
+    await new Plugin({
+        name: 'basicAuth',
+        description: 'Add basic authentication',
+        mainFile: 'plugins/basicAuth',
+        active: true,
+        config: {
+            passthrough: true,
+            credentials: {
+                name: process.env.BASICAUTH_USERNAME,
+                pass: process.env.BASICAUTH_PASSWORD,
+                role: 'ADMIN',
+            },
         },
     }).save();
 
