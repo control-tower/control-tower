@@ -26,33 +26,37 @@ class Notification {
     }
 
     async sendAlertMicroserviceDown(name, url, err) {
-        logger.info(`Sending event of microserviceDown with name ${name}`);
-        try {
-            await this.notify({
-                event: config.get('instapush.events.microserviceDown'),
-                trackers: {
-                    name,
-                    url,
-                    error: err.message,
-                },
-            });
-        } catch (er) {
-            logger.error(er);
+        if (config.get('application.sendNotifications')) {
+            logger.info(`Sending event of microserviceDown with name ${name}`);
+            try {
+                await this.notify({
+                    event: config.get('instapush.events.microserviceDown'),
+                    trackers: {
+                        name,
+                        url,
+                        error: err.message,
+                    },
+                });
+            } catch (er) {
+                logger.error(er);
+            }
         }
     }
 
     async sendAlertMicroserviceRestore(name, url) {
-        logger.info(`Sending event of microserviceRestore with name ${name}`);
-        try {
-            await this.notify({
-                event: config.get('instapush.events.microserviceRestore'),
-                trackers: {
-                    name,
-                    url,
-                },
-            });
-        } catch (er) {
-            logger.error(er);
+        if (config.get('application.sendNotifications')) {
+            logger.info(`Sending event of microserviceRestore with name ${name}`);
+            try {
+                await this.notify({
+                    event: config.get('instapush.events.microserviceRestore'),
+                    trackers: {
+                        name,
+                        url,
+                    },
+                });
+            } catch (er) {
+                logger.error(er);
+            }
         }
     }
 

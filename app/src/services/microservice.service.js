@@ -252,7 +252,6 @@ class Microservice {
             await request({
                 uri: urlLive,
             });
-            logger.info('micro', micro);
             if (micro.status === MICRO_STATUS_ERROR) {
                 logger.info('Sending event of restore microservice');
                 await NotificationService.sendAlertMicroserviceRestore(micro.name, micro.url);
@@ -281,14 +280,20 @@ class Microservice {
 
     static async checkLiveMicroservice() {
         logger.info('Check live microservices');
-        logger.debug('Obtaining microservices');
-        const microservices = await MicroserviceModel.find();
+
+        const versionFound = await VersionModel.findOne({
+            name: appConstants.ENDPOINT_VERSION,
+        });
+        logger.debug('Found', versionFound);
+
+        logger.info('Obtaining microservices with version ', versionFound);
+        const microservices = await MicroserviceModel.find({ version: versionFound });
         if (!microservices || microservices.length === 0) {
             logger.info('Not exist registered microservices');
             return;
         }
         for (let i = 0, length = microservices.length; i < length; i++) {
-            Microservice.checkLiveMicro(microservices[i]);
+            await Microservice.checkLiveMicro(microservices[i]);
         }
         logger.info('Finished checking');
     }
