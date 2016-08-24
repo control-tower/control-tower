@@ -252,7 +252,7 @@ class Microservice {
             await request({
                 uri: urlLive,
             });
-            if (micro.infoStatus.status === MICRO_STATUS_ERROR) {
+            if (micro.status === MICRO_STATUS_ERROR) {
                 logger.info('Sending event of restore microservice');
                 await NotificationService.sendAlertMicroserviceRestore(micro.name, micro.url);
             }
