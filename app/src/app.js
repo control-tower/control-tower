@@ -29,7 +29,7 @@ async function onDbReady(err) {
     }
     // set promises in mongoose with bluebird
     mongoose.Promise = bluebird;
-    if (process.env.EXEC_MIGRATION === true) {
+    if (process.env.EXEC_MIGRATION === 'true') {
         await require('migrations/init')(); // eslint-disable-line global-require
     }
 
