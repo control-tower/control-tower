@@ -29,7 +29,9 @@ async function onDbReady(err) {
     }
     // set promises in mongoose with bluebird
     mongoose.Promise = bluebird;
-    // await require('migrations/init')(); // eslint-disable-line global-require
+    if (process.env.EXEC_MIGRATION === true) {
+        await require('migrations/init')(); // eslint-disable-line global-require
+    }
 
     const app = new Koa();
 
