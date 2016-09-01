@@ -152,6 +152,8 @@ class Microservice {
                     method: endpoint.method,
                     redirect: endpoint.endpoints[0],
                     filters: Microservice.formatFilters(endpoint),
+                    authenticated: endpoint.authenticated || false,
+                    binary: endpoint.binary || false,
                 }
             ));
             delete info.urls;
