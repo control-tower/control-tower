@@ -8,6 +8,7 @@ const NotAuthenticated = require('errors/notAuthenticated');
 const FilterError = require('errors/filterError');
 const pathToRegexp = require('path-to-regexp');
 const requestPromise = require('request-promise');
+const utils = require('utils');
 const fs = require('fs');
 
 const ALLOWED_HEADERS = [
@@ -201,7 +202,7 @@ class Dispatcher {
         } else {
             logger.debug('Endpoint found');
             logger.debug('Checking if is necesary authentication');
-            if (endpoint.authenticated && !Dispatcher.isLogged()) {
+            if (endpoint.authenticated && !Dispatcher.getLoggedUser()) {
                 logger.info('Is necesary authentication but the request is not authenticated');
                 throw new NotAuthenticated();
             }
@@ -254,7 +255,7 @@ class Dispatcher {
                 logger.debug('Adding data');
                 if (endpoint.authenticated) {
                     redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
-                        loggedUser: Dispatcher.isLogged(),
+                        loggedUser: Dispatcher.getLoggedUser(),
                     });
                 }
                 if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
