@@ -7,7 +7,7 @@ const Promise = require('bluebird');
 class Notification {
 
     constructor() {
-        logger.debug('Initializing notification service', config.get('instapush.token'));
+        logger.debug('Initializing notification service');
         instapush.settings({
             ssl: true,
             token: config.get('instapush.token'),

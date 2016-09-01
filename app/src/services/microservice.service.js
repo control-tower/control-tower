@@ -20,7 +20,7 @@ const MICRO_STATUS_ERROR = 'error';
 class Microservice {
 
     static getFilters(endpoint) {
-        logger.debug('Checking filters in endpoint');
+        logger.debug('Checking filters in endpoint', endpoint);
         let filters = null;
         if (endpoint.filters) {
             for (let i = 0, length = endpoint.filters.length; i < length; i++) {
