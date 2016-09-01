@@ -16,7 +16,6 @@ const ALLOWED_HEADERS = [
     'charset',
     'location',
     'host',
-    'content-type'
 ];
 
 class Dispatcher {
@@ -72,9 +71,6 @@ class Dispatcher {
             const compareKeys = Object.keys(compare);
             for (let i = 0, length = compareKeys.length; i < length; i++) {
                 const key = compareKeys[i];
-                logger.debug(key);
-                logger.debug('compare[key]', compare[key]);
-                logger.debug('dataFilter[key]', dataFilter[key]);
                 if (compare[key] !== dataFilter[key]) {
                     return false;
                 }

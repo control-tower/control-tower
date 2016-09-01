@@ -140,7 +140,10 @@ async function authMicroservice(ctx, next) {
             token: ctx.headers.authentication,
         }, { swagger: 0 });
         if (service) {
-            ctx.state.microservice = service;
+            ctx.state.microservice = {
+                name: service.name,
+                url: service.url,
+            };
         }
     }
 
