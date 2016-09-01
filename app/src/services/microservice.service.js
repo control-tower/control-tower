@@ -88,7 +88,7 @@ class Microservice {
             endpoint.redirect.filters = Microservice.getFilters(endpoint);
             logger.debug('filters', endpoint.redirect.filters);
             logger.debug('regesx', pathRegex);
-            await new EndpointModel({
+            const endpointPepe = await new EndpointModel({
                 path: endpoint.path,
                 method: endpoint.method,
                 pathRegex,
@@ -98,6 +98,7 @@ class Microservice {
                 redirect: [endpoint.redirect],
                 version,
             }).save();
+            logger.debug('Endpoint saved', endpointPepe);
         }
     }
 

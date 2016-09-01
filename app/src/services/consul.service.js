@@ -22,10 +22,12 @@ class Consul {
                 const keys = Object.keys(result.data);
                 for (let i = 0, length = keys.length; i < length; i++) {
                     logger.debug(`Obtaining detail to ${keys[i]}`);
-                    promises.push(restling.json(`${config.get('consul.url')}${config.get('consul.getServicePath')}/${keys[i]}`, null, {
-                        username: config.get('consul.basicAuth.username'),
-                        password: config.get('consul.basicAuth.password'),
-                    }).then((res) => res.data));
+                    if (keys[i] === 'rw-adapter-csv') {
+                        promises.push(restling.json(`${config.get('consul.url')}${config.get('consul.getServicePath')}/${keys[i]}`, null, {
+                            username: config.get('consul.basicAuth.username'),
+                            password: config.get('consul.basicAuth.password'),
+                        }).then((res) => res.data));
+                    }
                 }
                 const servicesProm = await Promise.all(promises);
 
