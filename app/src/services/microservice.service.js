@@ -84,7 +84,7 @@ class Microservice {
             if (pathKeys && pathKeys.length > 0) {
                 pathKeys = pathKeys.map((key) => key.name);
             }
-            logger.debug('Saving new endpoint', pathKeys);
+            logger.debug('Saving new endpoint');
             endpoint.redirect.filters = Microservice.getFilters(endpoint);
             logger.debug('filters', endpoint.redirect.filters);
             logger.debug('regesx', pathRegex);
@@ -139,10 +139,10 @@ class Microservice {
                     const obj = {
                         path: endpoint.endpoints[0].path,
                         method: endpoint.endpoints[0].method,
-                        url: endpoint.endpoints[0].url,
                         filters,
                     };
                     logger.debug('REsultado ', obj);
+                    return obj;
                 }
             }
         }
@@ -160,6 +160,7 @@ class Microservice {
                 }
             ));
             delete info.urls;
+            logger.debug('Info resultante', info);
         }
         return info;
     }
