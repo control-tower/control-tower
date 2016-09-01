@@ -119,7 +119,7 @@ class Microservice {
         return `${urlInfo}?${queryParams}`;
     }
 
-    static formatEndpoint(endpoint) {
+    static formatFilters(endpoint) {
         if (endpoint) {
             if (endpoint.filters) {
                 logger.debug('Endpoint result', endpoint);
@@ -136,17 +136,11 @@ class Microservice {
                             provider: endpoint.filters.provider,
                         },
                     });
-                    const obj = {
-                        path: endpoint.endpoints[0].path,
-                        method: endpoint.endpoints[0].method,
-                        filters,
-                    };
-                    logger.debug('REsultado ', obj);
-                    return obj;
+                    return filters;
                 }
             }
         }
-        return endpoint.endpoints[0];
+        return null;
     }
 
     static transformToNewVersion(info) {
@@ -156,7 +150,8 @@ class Microservice {
                 {
                     path: endpoint.url,
                     method: endpoint.method,
-                    redirect: Microservice.formatEndpoint(endpoint),
+                    redirect: endpoint.endpoints[0],
+                    filters: Microservice.formatFilters(endpoint),
                 }
             ));
             delete info.urls;
