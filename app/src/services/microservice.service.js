@@ -122,6 +122,7 @@ class Microservice {
     static formatEndpoint(endpoint) {
         if (endpoint) {
             if (endpoint.filters) {
+                logger.debug('Endpoint result', endpoint);
                 if (endpoint.filters.provider) {
                     const filters = [];
                     filters.push({
@@ -135,12 +136,13 @@ class Microservice {
                             provider: endpoint.filters.provider,
                         },
                     });
-                    return {
+                    const obj = {
                         path: endpoint.endpoints[0].path,
                         method: endpoint.endpoints[0].method,
                         url: endpoint.endpoints[0].url,
                         filters,
                     };
+                    logger.debug('REsultado ', obj);
                 }
             }
         }
