@@ -17,7 +17,9 @@ function middleware(app) {
         try {
             await next();
         } finally {
-            logger.info('Time request ==> ', parseTime(Date.now() - first));
+            const ms = Date.now() - first;
+            logger.info('Time request ==> ', parseTime(ms));
+            ctx.set('X-Response-Time', `${ms} ms`);
         }
     });
 

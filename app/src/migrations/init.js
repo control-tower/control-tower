@@ -10,15 +10,15 @@ module.exports = async function init() {
     await Plugin.remove({});
     logger.info('Creating new plugins');
     await new Plugin({
-        name: 'manageErrors',
-        description: 'Manage Errors',
-        mainFile: 'plugins/manageErrors',
-        active: true,
-    }).save();
-    await new Plugin({
         name: 'timeRequest',
         description: 'Show time of the request',
         mainFile: 'plugins/timeRequest',
+        active: true,
+    }).save();
+    await new Plugin({
+        name: 'manageErrors',
+        description: 'Manage Errors',
+        mainFile: 'plugins/manageErrors',
         active: true,
     }).save();
     await new Plugin({
@@ -26,6 +26,18 @@ module.exports = async function init() {
         description: 'Add CORS Headers',
         mainFile: 'plugins/cors',
         active: true,
+    }).save();
+    await new Plugin({
+        name: 'redisCache',
+        description: 'Cache request',
+        mainFile: 'ct-redis-cache-plugin',
+        active: true,
+        config: {
+            redis: {
+                host: process.env.REDIS_PORT_6379_TCP_ADDR,
+                port: process.env.REDIS_PORT_6379_TCP_PORT,
+            },
+        },
     }).save();
     await new Plugin({
         name: 'stadistics',

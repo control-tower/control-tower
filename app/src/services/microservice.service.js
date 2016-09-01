@@ -119,6 +119,21 @@ class Microservice {
         return `${urlInfo}?${queryParams}`;
     }
 
+    static transformToNewVersion(info) {
+        logger.info('Checking if is necesary transform to new version');
+        if (info.urls) {
+            info.endpoints = info.urls.map((endpoint) => (
+                {
+                    path: endpoint.url,
+                    method: endpoint.method,
+                    redirect: endpoint.endpoints[0],
+                }
+            ));
+            delete info.urls;
+        }
+        return info;
+    }
+
     static async getInfoMicroservice(micro, version) {
         logger.info(`Obtaining info of the microservice with name ${micro.name} and version ${version}`);
         let urlInfo = url.resolve(micro.url, micro.pathInfo);
@@ -132,6 +147,7 @@ class Microservice {
                 json: true,
             });
             logger.debug('Updating microservice');
+            result = Microservice.transformToNewVersion(result);
             micro.endpoints = result.endpoints;
             micro.swagger = JSON.stringify(result.swagger);
             micro.updatedAt = Date.now();
