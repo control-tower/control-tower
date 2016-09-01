@@ -34,7 +34,7 @@
             "username": "",
             "password": ""
         },
-        "getServicesPath": "/services",
+        "getServicesPath": "/v1/catalog/services",
         "getServicePath": "/v1/catalog/service"
     },
     "instapush": {
