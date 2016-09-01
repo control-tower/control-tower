@@ -135,12 +135,16 @@ class Microservice {
                             provider: endpoint.filters.provider,
                         },
                     });
-                    endpoint.filters = filters;
+                    return {
+                        path: endpoint.endpoinst[0].path,
+                        method: endpoint.endpoinst[0].method,
+                        url: endpoint.endpoinst[0].url,
+                        filters,
+                    };
                 }
             }
         }
-        logger.debug('ENDPOINT RESULT', endpoint);
-        return endpoint;
+        return endpoint.endpoinst[0];
     }
 
     static transformToNewVersion(info) {
@@ -150,7 +154,7 @@ class Microservice {
                 {
                     path: endpoint.url,
                     method: endpoint.method,
-                    redirect: Microservice.formatEndpoint(endpoint.endpoints[0]),
+                    redirect: Microservice.formatEndpoint(endpoint),
                 }
             ));
             delete info.urls;
