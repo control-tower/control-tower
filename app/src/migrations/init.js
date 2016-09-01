@@ -57,15 +57,15 @@ module.exports = async function init() {
             },
             google: {
                 active: false,
-                clientID: '',
-                clientSecret: '',
-                scope: '',
+                clientID: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                scope: 'https://www.googleapis.com/auth/plus.me',
             },
             facebook: {
                 active: false,
-                clientID: '',
-                clientSecret: '',
-                scope: '',
+                clientID: process.env.FACEBOOK_CLIENT_ID,
+                clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+                scope: 'email',
             },
             local: {
                 active: true,
