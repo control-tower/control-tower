@@ -303,7 +303,7 @@ class Microservice {
         logger.debug('Found', versionFound);
 
         logger.info('Obtaining microservices with version ', versionFound);
-        const microservices = await MicroserviceModel.find({ version: versionFound });
+        const microservices = await MicroserviceModel.find({ version: versionFound.version });
         if (!microservices || microservices.length === 0) {
             logger.info('Not exist registered microservices');
             return;

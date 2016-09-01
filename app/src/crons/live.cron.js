@@ -7,4 +7,4 @@ async function tick() {
     await MicroserviceService.checkLiveMicroservice();
 }
 
-new CronJob('*/10 * * * * *', tick, null, true, 'America/Los_Angeles');  // eslint-disable-line no-new
+new CronJob('*/30 * * * * *', tick, null, true, 'America/Los_Angeles');  // eslint-disable-line no-new
