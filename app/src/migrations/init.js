@@ -62,7 +62,7 @@ module.exports = async function init() {
                 scope: 'https://www.googleapis.com/auth/plus.me',
             },
             facebook: {
-                active: false,
+                active: true,
                 clientID: process.env.FACEBOOK_CLIENT_ID,
                 clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
                 scope: 'email',
