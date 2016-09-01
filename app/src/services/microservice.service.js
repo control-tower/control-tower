@@ -180,6 +180,8 @@ class Microservice {
             logger.debug('Updating microservice');
             result = Microservice.transformToNewVersion(result);
             micro.endpoints = result.endpoints;
+
+            logger.debug('Microservice info', result.endpoints[0]);
             micro.swagger = JSON.stringify(result.swagger);
             micro.updatedAt = Date.now();
             micro.token = token;
