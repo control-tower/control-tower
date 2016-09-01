@@ -27,19 +27,7 @@ module.exports = async function init() {
         mainFile: 'plugins/cors',
         active: true,
     }).save();
-    await new Plugin({
-        name: 'redisCache',
-        description: 'Cache request',
-        mainFile: 'ct-redis-cache-plugin',
-        active: true,
-        config: {
-            redis: {
-                host: process.env.REDIS_PORT_6379_TCP_ADDR,
-                port: process.env.REDIS_PORT_6379_TCP_PORT,
-            },
-            timeCache: 60 * 60,
-        },
-    }).save();
+
     await new Plugin({
         name: 'stadistics',
         description: 'Add stadistics info',
@@ -63,7 +51,7 @@ module.exports = async function init() {
         active: true,
         config: {
             twitter: {
-                active: true,
+                active: false,
                 consumerKey: process.env.TWITTER_CONSUMER_KEY,
                 consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
             },
@@ -105,6 +93,19 @@ module.exports = async function init() {
                 pass: process.env.BASICAUTH_PASSWORD,
                 role: 'ADMIN',
             },
+        },
+    }).save();
+    await new Plugin({
+        name: 'redisCache',
+        description: 'Cache request',
+        mainFile: 'ct-redis-cache-plugin',
+        active: true,
+        config: {
+            redis: {
+                host: process.env.REDIS_PORT_6379_TCP_ADDR,
+                port: process.env.REDIS_PORT_6379_TCP_PORT,
+            },
+            timeCache: 60 * 60,
         },
     }).save();
 

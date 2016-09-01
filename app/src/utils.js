@@ -1,7 +1,6 @@
 const logger = require('logger');
 
 function getUser(ctx) {
-    logger.debug('State', ctx.state.user);
     return ctx.req.user || ctx.state.user;
 }
 

@@ -119,6 +119,30 @@ class Microservice {
         return `${urlInfo}?${queryParams}`;
     }
 
+    static formatEndpoint(endpoint) {
+        if (endpoint) {
+            if (endpoint.filters) {
+                if (endpoint.filters.provider) {
+                    const filters = [];
+                    filters.push({
+                        name: 'dataset',
+                        path: '/dataset/:dataset',
+                        method: 'GET',
+                        params: {
+                            dataset: 'dataset',
+                        },
+                        compare: {
+                            provider: endpoint.filters.provider,
+                        },
+                    });
+                    endpoint.filters = filters;
+                }
+            }
+        }
+        logger.debug('ENDPOINT RESULT', endpoint);
+        return endpoint;
+    }
+
     static transformToNewVersion(info) {
         logger.info('Checking if is necesary transform to new version');
         if (info.urls) {
@@ -126,7 +150,7 @@ class Microservice {
                 {
                     path: endpoint.url,
                     method: endpoint.method,
-                    redirect: endpoint.endpoints[0],
+                    redirect: Microservice.formatEndpoint(endpoint.endpoints[0]),
                 }
             ));
             delete info.urls;
