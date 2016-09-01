@@ -247,7 +247,7 @@ class Dispatcher {
                     configRequest.body = ctx.request.body;
                 }
             }
-            if (redirectEndpoint.data) {
+            if (redirectEndpoint.data || endpoint.authenticated) {
                 logger.debug('Adding data');
                 if (endpoint.authenticated) {
                     redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
