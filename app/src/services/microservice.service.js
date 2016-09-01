@@ -136,15 +136,15 @@ class Microservice {
                         },
                     });
                     return {
-                        path: endpoint.endpoinst[0].path,
-                        method: endpoint.endpoinst[0].method,
-                        url: endpoint.endpoinst[0].url,
+                        path: endpoint.endpoints[0].path,
+                        method: endpoint.endpoints[0].method,
+                        url: endpoint.endpoints[0].url,
                         filters,
                     };
                 }
             }
         }
-        return endpoint.endpoinst[0];
+        return endpoint.endpoints[0];
     }
 
     static transformToNewVersion(info) {
