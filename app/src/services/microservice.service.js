@@ -122,7 +122,6 @@ class Microservice {
     static formatFilters(endpoint) {
         if (endpoint) {
             if (endpoint.filters) {
-                logger.debug('Endpoint result', endpoint);
                 if (endpoint.filters.provider) {
                     const filters = [];
                     filters.push({
@@ -155,7 +154,6 @@ class Microservice {
                 }
             ));
             delete info.urls;
-            logger.debug('Info resultante', info);
         }
         return info;
     }
