@@ -202,7 +202,7 @@ class Dispatcher {
         } else {
             logger.debug('Endpoint found');
             logger.debug('Checking if is necesary authentication');
-            if (endpoint.authenticated && !Dispatcher.getLoggedUser()) {
+            if (endpoint.authenticated && !Dispatcher.getLoggedUser(ctx)) {
                 logger.info('Is necesary authentication but the request is not authenticated');
                 throw new NotAuthenticated();
             }
@@ -255,7 +255,7 @@ class Dispatcher {
                 logger.debug('Adding data');
                 if (endpoint.authenticated) {
                     redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
-                        loggedUser: Dispatcher.getLoggedUser(),
+                        loggedUser: Dispatcher.getLoggedUser(ctx),
                     });
                 }
                 if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
