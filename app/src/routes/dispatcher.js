@@ -1,13 +1,14 @@
 const Router = require('koa-router');
 const logger = require('logger');
+const config = require('config');
+const Promise = require('bluebird');
+const JWT = Promise.promisifyAll(require('jsonwebtoken'));
 const DispatcherService = require('services/dispatcher.service.js');
 const EndpointNotFound = require('errors/endpointNotFound');
 const NotAuthenticated = require('errors/notAuthenticated');
 const FilterError = require('errors/filterError');
-const MicroserviceModel = require('models/microservice.model');
 const fs = require('fs');
 const router = new Router();
-const Promise = require('bluebird');
 // const restling = require('restling');
 const requestPromise = require('request-promise');
 const request = require('request');
@@ -136,14 +137,16 @@ class DispatcherRouter {
 async function authMicroservice(ctx, next) {
     if (ctx.headers && ctx.headers.authentication) {
         logger.debug('Authenticated microservice with token: ', ctx.headers.authentication);
-        const service = await MicroserviceModel.findOne({
-            token: ctx.headers.authentication,
-        }, { swagger: 0 });
-        if (service) {
-            ctx.state.microservice = {
-                name: service.name,
-                url: service.url,
-            };
+        try {
+            const service = await JWT.verify(ctx.headers.authentication, config.get('jwt.token'));
+            if (service) {
+                ctx.state.microservice = {
+                    name: service.name,
+                    url: service.url,
+                };
+            }
+        } catch (err) {
+            logger.error('Token invalid', err);
         }
     }
 

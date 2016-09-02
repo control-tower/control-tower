@@ -12,6 +12,8 @@ const mongoUri = `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.
 const koaBody = require('koa-body')({
     multipart: true,
     jsonLimit: '50mb',
+    formLimit: '50mb',
+    textLimit: '50mb',
     formidable: {
         uploadDir: '/tmp',
         onFileBegin(name, file) {

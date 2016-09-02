@@ -11,6 +11,8 @@ const url = require('url');
 const crypto = require('crypto');
 const pathToRegexp = require('path-to-regexp');
 const NotificationService = require('services/notification.service.js');
+const Promise = require('bluebird');
+const JWT = Promise.promisifyAll(require('jsonwebtoken'));
 
 const MICRO_STATUS_PENDING = 'pending';
 const MICRO_STATUS_ACTIVE = 'active';
@@ -146,25 +148,29 @@ class Microservice {
     static transformToNewVersion(info) {
         logger.info('Checking if is necesary transform to new version');
         if (info.urls) {
-            info.endpoints = info.urls.map((endpoint) => (
-                {
-                    path: endpoint.url,
-                    method: endpoint.method,
-                    redirect: endpoint.endpoints[0],
-                    filters: Microservice.formatFilters(endpoint),
-                    authenticated: endpoint.authenticated || false,
-                    binary: endpoint.binary || false,
-                }
-            ));
+            info.endpoints = info.urls.map((endpoint) => ({
+                path: endpoint.url,
+                method: endpoint.method,
+                redirect: endpoint.endpoints[0],
+                filters: Microservice.formatFilters(endpoint),
+                authenticated: endpoint.authenticated || false,
+                binary: endpoint.binary || false,
+            }));
             delete info.urls;
         }
         return info;
     }
 
+    static async generateToken(micro) {
+        const token = JWT.sign(micro, config.get('jwt.token'), {});
+        return token;
+    }
+
     static async getInfoMicroservice(micro, version) {
         logger.info(`Obtaining info of the microservice with name ${micro.name} and version ${version}`);
         let urlInfo = url.resolve(micro.url, micro.pathInfo);
-        const token = crypto.randomBytes(20).toString('hex');
+        logger.debug('Generating token');
+        const token = await Microservice.generateToken(micro);
         urlInfo = Microservice.generateUrlInfo(urlInfo, token, config.get('server.internalUrl'));
         logger.debug(`Doing request to ${urlInfo}`);
         let result = null;
@@ -332,7 +338,9 @@ class Microservice {
         logger.debug('Found', versionFound);
 
         logger.info('Obtaining microservices with version ', versionFound);
-        const microservices = await MicroserviceModel.find({ version: versionFound.version });
+        const microservices = await MicroserviceModel.find({
+            version: versionFound.version
+        });
         if (!microservices || microservices.length === 0) {
             logger.info('Not exist registered microservices');
             return;
