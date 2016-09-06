@@ -20,6 +20,9 @@ module.exports = async function init() {
         description: 'Manage Errors',
         mainFile: 'plugins/manageErrors',
         active: true,
+        config: {
+            jsonAPIErrors: true,
+        },
     }).save();
     await new Plugin({
         name: 'cors',
@@ -62,7 +65,7 @@ module.exports = async function init() {
                 scope: 'https://www.googleapis.com/auth/plus.me',
             },
             facebook: {
-                active: true,
+                active: false,
                 clientID: process.env.FACEBOOK_CLIENT_ID,
                 clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
                 scope: 'email',
