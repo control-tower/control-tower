@@ -88,7 +88,7 @@ module.exports = async function init() {
         name: 'basicAuth',
         description: 'Add basic authentication',
         mainFile: 'plugins/basicAuth',
-        active: true,
+        active: false,
         config: {
             passthrough: true,
             credentials: {

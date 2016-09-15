@@ -12,6 +12,11 @@ function middleware(app, plugin) {
         } catch (error) {
             ctx.status = error.status || 500;
             if (process.env.NODE_ENV === 'prod' && ctx.status === 500) {
+                if (plugin.config.jsonAPIErrors) {
+                    ctx.response.type = 'application/vnd.api+json';
+                    ctx.body = ErrorSerializer.serializeError(ctx.status, 'Unexpected error');
+                    return;
+                }
                 ctx.body = 'Unexpected error';
                 return;
             }
