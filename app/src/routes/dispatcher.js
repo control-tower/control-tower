@@ -74,7 +74,6 @@ class DispatcherRouter {
             logger.debug('Config request', configRequest);
             if (!configRequest.binary) {
                 const result = await requestPromise(configRequest);
-                logger.debug('Resultado', result);
                 // set headers
                 ctx.set(getHeadersFromResponse(result));
                 ctx.status = result.statusCode;
