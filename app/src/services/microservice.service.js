@@ -65,6 +65,7 @@ class Microservice {
                 path: endpoint.path,
                 method: endpoint.method,
                 'redirect.url': endpoint.redirect.url,
+                version,
             }).exec();
             if (!oldRedirect) {
                 logger.debug('Not exist redirect');

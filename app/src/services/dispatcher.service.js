@@ -87,8 +87,8 @@ class Dispatcher {
             let valid = true;
             if (redirect.filters) {
                 for (let j = 0, lengthRF = redirect.filters.length; j < lengthRF; j++) {
-                    const filterValue = Dispatcher.searchFilterValue(redirect.filters[i], filters);
-                    if (!filterValue || !Dispatcher.checkCompare(redirect.filters[i].compare, filterValue)) {
+                    const filterValue = Dispatcher.searchFilterValue(redirect.filters[j], filters);
+                    if (!filterValue || !Dispatcher.checkCompare(redirect.filters[j].compare, filterValue)) {
                         logger.warn('Not valid filter');
                         valid = false;
                         break;
@@ -96,7 +96,7 @@ class Dispatcher {
                     if (!redirect.data) {
                         redirect.data = {};
                     }
-                    redirect.data[redirect.filters[i].name] = filterValue;
+                    redirect.data[redirect.filters[j].name] = filterValue;
                 }
             }
             if (valid) {
