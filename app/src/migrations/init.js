@@ -108,7 +108,7 @@ module.exports = async function init() {
                 host: process.env.REDIS_PORT_6379_TCP_ADDR,
                 port: process.env.REDIS_PORT_6379_TCP_PORT,
             },
-            timeCache: 60 * 60,
+            timeCache: 60 * 60 * 24,
         },
     }).save();
 
