@@ -80,7 +80,7 @@ class DispatcherRouter {
                 if (ctx.status >= 400) {
                     logger.error('error body', result.body);
                     if (result.body.errors && result.body.errors.length > 0 && result.body.errors[0].status >= 400 && result.body.errors[0].status < 500) {
-                        if (isNaN(result.body.errors[0].status)) {
+                        if (typeof result.body.errors[0].status === 'string') {
                             ctx.status = parseInt(result.body.errors[0].status, 10);
                         } else {
                             ctx.status = result.body.errors[0].status;
