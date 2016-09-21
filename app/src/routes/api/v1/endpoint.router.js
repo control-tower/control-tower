@@ -1,5 +1,7 @@
+const appConstants = require('app.constants');
 const Router = require('koa-router');
 const Endpoint = require('models/endpoint.model');
+const VersionModel = require('models/version.model');
 const logger = require('logger');
 const Utils = require('utils');
 
@@ -11,7 +13,14 @@ class EndpointRouter {
 
     static async get(ctx) {
         logger.info('Obtaining endpoints');
-        ctx.body = await Endpoint.find({}, { __v: 0 });
+        const version = await VersionModel.findOne({
+            name: appConstants.ENDPOINT_VERSION,
+        });
+        ctx.body = await Endpoint.find({
+            version: version.version,
+        }, {
+            __v: 0,
+        });
     }
 
 }
