@@ -36,6 +36,7 @@ module.exports = async function init() {
         description: 'Add stadistics info',
         mainFile: 'ct-stadistics-plugin',
         active: true,
+        cronFile: 'ct-stadistics-plugin/cron',
     }).save();
     await new Plugin({
         name: 'sessionMongo',
@@ -102,7 +103,7 @@ module.exports = async function init() {
         name: 'redisCache',
         description: 'Cache request',
         mainFile: 'ct-redis-cache-plugin',
-        active: true,
+        active: false,
         config: {
             redis: {
                 host: process.env.REDIS_PORT_6379_TCP_ADDR,
