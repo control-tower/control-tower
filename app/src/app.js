@@ -31,6 +31,7 @@ async function onDbReady(err) {
     }
     // set promises in mongoose with bluebird
     mongoose.Promise = bluebird;
+    logger.debug('migration', process.env.EXEC_MIGRATION);
     if (process.env.EXEC_MIGRATION === 'true') {
         logger.info('Executing migration...');
         await require('migrations/init')(); // eslint-disable-line global-require

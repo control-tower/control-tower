@@ -49,6 +49,20 @@ module.exports = async function init() {
         },
     }).save();
     await new Plugin({
+        name: 'basicAuth',
+        description: 'Add basic authentication',
+        mainFile: 'plugins/basicAuth',
+        active: true,
+        config: {
+            passthrough: true,
+            credentials: {
+                name: process.env.BASICAUTH_USERNAME,
+                pass: process.env.BASICAUTH_PASSWORD,
+                role: 'ADMIN',
+            },
+        },
+    }).save();
+    await new Plugin({
         name: 'oauth',
         description: 'Plugin oauth with passport',
         mainFile: 'ct-oauth-plugin',
@@ -77,7 +91,7 @@ module.exports = async function init() {
                 confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
             },
             jwt: {
-                active: true,
+                active: false,
                 secret: process.env.JWT_SECRET,
                 passthrough: true,
                 expiresInMinutes: 0,
@@ -85,20 +99,7 @@ module.exports = async function init() {
             publicUrl: process.env.PUBLIC_URL,
         },
     }).save();
-    await new Plugin({
-        name: 'basicAuth',
-        description: 'Add basic authentication',
-        mainFile: 'plugins/basicAuth',
-        active: false,
-        config: {
-            passthrough: true,
-            credentials: {
-                name: process.env.BASICAUTH_USERNAME,
-                pass: process.env.BASICAUTH_PASSWORD,
-                role: 'ADMIN',
-            },
-        },
-    }).save();
+
     await new Plugin({
         name: 'redisCache',
         description: 'Cache request',
