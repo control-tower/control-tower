@@ -135,9 +135,7 @@ class Microservice {
                         params: {
                             dataset: 'dataset',
                         },
-                        compare: {
-                            provider: endpoint.filters.provider,
-                        },
+                        compare: endpoint.filters,
                     });
                     return filters;
                 }
