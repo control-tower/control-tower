@@ -48,20 +48,7 @@ module.exports = async function init() {
             sessionKey: process.env.SESSION_KEY,
         },
     }).save();
-    await new Plugin({
-        name: 'basicAuth',
-        description: 'Add basic authentication',
-        mainFile: 'plugins/basicAuth',
-        active: true,
-        config: {
-            passthrough: true,
-            credentials: {
-                name: process.env.BASICAUTH_USERNAME,
-                pass: process.env.BASICAUTH_PASSWORD,
-                role: 'ADMIN',
-            },
-        },
-    }).save();
+
     await new Plugin({
         name: 'oauth',
         description: 'Plugin oauth with passport',
@@ -89,6 +76,12 @@ module.exports = async function init() {
                 active: true,
                 sparkpostKey: process.env.SPARKPOST_KEY,
                 confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
+            },
+            basic: {
+                active: false,
+                userId: process.env.BASICAUTH_USERNAME,
+                password: process.env.BASICAUTH_PASSWORD,
+                role: 'ADMIN',
             },
             jwt: {
                 active: false,

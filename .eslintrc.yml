@@ -10,7 +10,7 @@ parserOptions:
 rules:
   max-len: [1, 120, 2, {"ignoreUrls":true}]
   curly: [2, "multi-line"]
-  comma-dangle: [2, always-multiline]
+  comma-dangle: [0, always-multiline]
   eqeqeq: [2, "allow-null"]
   no-shadow: 1
   no-param-reassign: [2, { "props": false }]

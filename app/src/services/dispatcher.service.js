@@ -65,18 +65,27 @@ class Dispatcher {
         return null;
     }
 
+
     static checkCompare(compare, dataFilter) {
         logger.debug('Check compare filter to filter', compare, 'and dataFilter', dataFilter);
         if (compare && dataFilter) {
             const compareKeys = Object.keys(compare);
+
             for (let i = 0, length = compareKeys.length; i < length; i++) {
                 const key = compareKeys[i];
-                if (compare[key] !== dataFilter[key]) {
+                if (typeof compare[key] === 'object') {
+                    logger.debug('IS A OBJECT');
+                    const match = Dispatcher.checkCompare(compare[key], dataFilter[key]);
+                    if (!match) {
+                        return false;
+                    }
+                } else if (compare[key] !== dataFilter[key]) {
                     return false;
                 }
             }
+            return true;
         }
-        return true;
+        return false;
     }
 
     static checkValidRedirects(redirects, filters) {
