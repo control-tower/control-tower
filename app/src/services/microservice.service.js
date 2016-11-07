@@ -130,7 +130,7 @@ class Microservice {
                     const filters = [];
                     filters.push({
                         name: endpoint.paramProvider || 'dataset',
-                        path: endpoint.pathProvider || '/datasets/:dataset',
+                        path: endpoint.pathProvider || '/dataset/:dataset',
                         method: 'GET',
                         params: {
                             dataset: 'dataset',
