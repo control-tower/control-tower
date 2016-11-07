@@ -126,7 +126,7 @@ class Microservice {
     static formatFilters(endpoint) {
         if (endpoint) {
             if (endpoint.filters) {
-                if (endpoint.filters.provider) {
+                if (endpoint.filters) {
                     const filters = [];
                     filters.push({
                         name: endpoint.paramProvider || 'dataset',
