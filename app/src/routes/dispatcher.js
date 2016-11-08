@@ -166,6 +166,7 @@ async function authMicroservice(ctx, next) {
             const service = await JWT.verify(ctx.headers.authentication, config.get('jwt.token'));
             if (service) {
                 ctx.state.microservice = {
+                    id: service.id,
                     name: service.name,
                     url: service.url,
                 };
