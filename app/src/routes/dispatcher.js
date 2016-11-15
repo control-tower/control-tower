@@ -74,42 +74,40 @@ class DispatcherRouter {
             configRequest.followRedirects = false;
 
             logger.debug('Config request', configRequest);
-            if (!configRequest.binary) {
-                const result = await requestPromise(configRequest);
-                // set headers
-                ctx.set(getHeadersFromResponse(result));
-                ctx.status = result.statusCode;
-                if (ctx.status >= 400) {
-                    logger.error('error body', result.body);
-                    if (result.body.errors && result.body.errors.length > 0 && result.body.errors[0].status >= 400 && result.body.errors[0].status < 500) {
-                        if (typeof result.body.errors[0].status === 'string') {
-                            ctx.status = parseInt(result.body.errors[0].status, 10);
-                        } else {
-                            ctx.status = result.body.errors[0].status;
-                        }
-                        ctx.body = result.body;
+            
+            const result = await requestPromise(configRequest);
+            // set headers
+            ctx.set(getHeadersFromResponse(result));
+            ctx.status = result.statusCode;
+            if (ctx.status >= 400) {
+                const body = JSON.parse(result.body.toString('utf8'));
+                logger.error('error body', body);
+                if (body.errors && body.errors.length > 0 && body.errors[0].status >= 400 && body.errors[0].status < 500) {
+                    if (typeof body.errors[0].status === 'string') {
+                        ctx.status = parseInt(body.errors[0].status, 10);
                     } else {
-                        if (process.env.NODE_ENV === 'prod') {
-                            ctx.throw(500, 'Unexpected error');
-                            return;
-                        }
-                        let message = '';
-                        if (result.body.error) {
-                            message += result.body.error;
-                        }
-                        if (result.body.exception) {
-                            message += ` --- ${result.body.exception}`;
-                        }
-                        ctx.throw(result.statusCode || 500, message);
+                        ctx.status = body.errors[0].status;
+                    }
+                    ctx.body = body;
+                } else {
+                    if (process.env.NODE_ENV === 'prod') {
+                        ctx.throw(500, 'Unexpected error');
                         return;
                     }
+                    let message = '';
+                    if (body.error) {
+                        message += body.error;
+                    }
+                    if (body.exception) {
+                        message += ` --- ${body.exception}`;
+                    }
+                    ctx.throw(result.statusCode || 500, message);
+                    return;
                 }
-                ctx.body = result.body;
-                ctx.response.type = result.headers['content-type'];
-            } else {
-                logger.info('Binary request');
-                ctx.body = request(configRequest);
             }
+            ctx.body = result.body;
+            ctx.response.type = result.headers['content-type'];
+            
         } catch (err) {
             logger.error(err);
             if (err instanceof EndpointNotFound) {

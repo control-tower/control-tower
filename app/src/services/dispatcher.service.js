@@ -304,6 +304,7 @@ class Dispatcher {
                 configRequest.json = true;
                 delete configRequest.multipart;
             }
+            configRequest.encoding = null; // all request have encoding null
 
             logger.debug('Returning config', configRequest);
             return {
