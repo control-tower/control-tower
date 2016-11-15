@@ -80,7 +80,7 @@ class DispatcherRouter {
             ctx.set(getHeadersFromResponse(result));
             ctx.status = result.statusCode;
             if (ctx.status >= 400) {
-                const body = JSON.parse(result.body.toString('utf8'));
+                const body = result.body;
                 logger.error('error body', body);
                 if (body.errors && body.errors.length > 0 && body.errors[0].status >= 400 && body.errors[0].status < 500) {
                     if (typeof body.errors[0].status === 'string') {
