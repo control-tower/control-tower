@@ -19,11 +19,13 @@ class DocRouter {
                 for (let i = 0, length = services.length; i < length; i++) {
                     if (services[i].swagger) {
                         const swaggerService = JSON.parse(services[i].swagger);
-                        if (swaggerService.paths) {
-                            swagger.paths = Object.assign(swagger.paths, swaggerService.paths);
-                        }
-                        if (swaggerService.definitions) {
-                            swagger.definitions = Object.assign(swagger.definitions, swaggerService.definitions);
+                        if (swaggerService) {
+                            if (swaggerService.paths) {
+                                swagger.paths = Object.assign(swagger.paths, swaggerService.paths);
+                            }
+                            if (swaggerService.definitions) {
+                                swagger.definitions = Object.assign(swagger.definitions, swaggerService.definitions);
+                            }
                         }
                     }
                 }

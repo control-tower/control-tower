@@ -15,7 +15,6 @@ const Microservice = new Schema({
         error: { type: String, required: false, trim: true },
     },
     updatedAt: { type: Date, default: Date.now, required: true },
-    token: { type: String, required: true, trim: true },
     endpoints: [{
         _id: false,
         path: { type: String, required: true, trim: true },
