@@ -39,14 +39,27 @@ class DocRouter {
     static async getSwagger(ctx) {
         logger.info('Obtaining swagger');
         const filters = {};
+
+        if (ctx.query.microservice) {
+            logger.debug('Get by microservice ', ctx.query.microservice);
+            filters.name = ctx.query.microservice;
+            logger.debug('filters ', filters);
+            const microservice = await MicroserviceModel.find(filters);
+            ctx.body = microservice.swagger;
+            return;
+        }
         if (ctx.query.tag) {
             logger.debug('Get by tag ', ctx.query.tag);
-            filters.tags = { $in: [ctx.query.tag] };
+            filters.tags = {
+                $in: [ctx.query.tag]
+            };
             logger.debug('filters ', filters);
+
         }
         const microservices = await MicroserviceModel.find(filters);
         logger.debug(microservices);
         ctx.body = DocRouter.mergeDoc(microservices);
+
     }
 
 }
