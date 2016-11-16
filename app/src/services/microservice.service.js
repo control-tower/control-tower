@@ -114,9 +114,9 @@ class Microservice {
         }
     }
 
-    static generateUrlInfo(urlInfo, internalUrl) {
+    static generateUrlInfo(urlInfo, token, internalUrl) {
         logger.debug('Generating url info to microservice with url', urlInfo);
-        const queryParams = `url=${internalUrl}`;
+        const queryParams = `token=${token}&url=${internalUrl}`;
         if (urlInfo.indexOf('?') >= 0) {
             return `${urlInfo}&${queryParams}`;
         }
@@ -160,11 +160,17 @@ class Microservice {
         return info;
     }
 
+    static async generateToken(micro) {
+        const token = JWT.sign(micro, config.get('jwt.token'), {});
+        return token;
+    }
+
     static async getInfoMicroservice(micro, version) {
         logger.info(`Obtaining info of the microservice with name ${micro.name} and version ${version}`);
         let urlInfo = url.resolve(micro.url, micro.pathInfo);
-        
-        urlInfo = Microservice.generateUrlInfo(urlInfo, config.get('server.internalUrl'));
+        logger.debug('Generating token');
+        const token = await Microservice.generateToken(micro);
+        urlInfo = Microservice.generateUrlInfo(urlInfo, token, config.get('server.internalUrl'));
         logger.debug(`Doing request to ${urlInfo}`);
         let result = null;
         try {
