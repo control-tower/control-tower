@@ -71,7 +71,7 @@ class DispatcherRouter {
             logger.debug('Sending request');
             // save information about redirect
             ctx.state = DispatcherRouter.getInfoRedirect(ctx, infoRequest);
-            configRequest.followRedirects = false;
+            configRequest.followRedirect = false;
 
             logger.debug('Config request', configRequest);
             
@@ -80,7 +80,10 @@ class DispatcherRouter {
             ctx.set(getHeadersFromResponse(result));
             ctx.status = result.statusCode;
             if (ctx.status >= 400 && ctx.status < 500) {
-                const body = result.body;
+                let body = result.body;
+                if (body instanceof Buffer) {
+                    body = body.toString('utf8');
+                }
                 logger.error('error body', body);
                 if (body.errors && body.errors.length > 0) {
                     ctx.body = body;
@@ -95,6 +98,9 @@ class DispatcherRouter {
                     }
                     if (body.exception) {
                         message += ` --- ${body.exception}`;
+                    }
+                    if (!body.exception && !body.error) {
+                        message = body;
                     }
                     ctx.throw(result.statusCode || 500, message);
                     return;
