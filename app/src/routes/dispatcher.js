@@ -79,10 +79,10 @@ class DispatcherRouter {
             // set headers
             ctx.set(getHeadersFromResponse(result));
             ctx.status = result.statusCode;
-            if (ctx.status >= 400) {
+            if (ctx.status >= 400 && ctx.status < 500) {
                 const body = result.body;
                 logger.error('error body', body);
-                if (body.errors && body.errors.length > 0 && body.errors[0].status >= 400 && body.errors[0].status < 500) {
+                if (body.errors && body.errors.length > 0) {
                     if (typeof body.errors[0].status === 'string') {
                         ctx.status = parseInt(body.errors[0].status, 10);
                     } else {
