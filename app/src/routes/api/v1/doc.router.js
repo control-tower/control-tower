@@ -44,7 +44,7 @@ class DocRouter {
             logger.debug('Get by microservice ', ctx.query.microservice);
             filters.name = ctx.query.microservice;
             logger.debug('filters ', filters);
-            const microservice = await MicroserviceModel.find(filters);
+            const microservice = await MicroserviceModel.findOne(filters);
             ctx.body = microservice.swagger;
             return;
         }
