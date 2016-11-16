@@ -83,11 +83,6 @@ class DispatcherRouter {
                 const body = result.body;
                 logger.error('error body', body);
                 if (body.errors && body.errors.length > 0) {
-                    if (typeof body.errors[0].status === 'string') {
-                        ctx.status = parseInt(body.errors[0].status, 10);
-                    } else {
-                        ctx.status = body.errors[0].status;
-                    }
                     ctx.body = body;
                 } else {
                     if (process.env.NODE_ENV === 'prod') {
