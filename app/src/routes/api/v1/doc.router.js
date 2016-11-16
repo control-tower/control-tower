@@ -46,6 +46,7 @@ class DocRouter {
             logger.debug('filters ', filters);
             const microservice = await MicroserviceModel.findOne(filters);
             if (microservice && microservice.swagger) {
+                microservice.swagger = JSON.parse(microservice.swagger);
                 microservice.swagger.host = config.get('server.publicUrl').replace('http://', '').replace('https://', '');
                 ctx.body = microservice.swagger;
             } else {
