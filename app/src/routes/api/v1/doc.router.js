@@ -14,7 +14,7 @@ class DocRouter {
         logger.debug('Merging doc');
         const swagger = swaggerCT;
         try {
-            swagger.host = config.get('server.publicUrl').replace('http://', '').replace('https://', '');
+            swagger.host = config.get('server.publicUrl').replace('http://', '');
             if (services) {
                 for (let i = 0, length = services.length; i < length; i++) {
                     if (services[i].swagger) {
@@ -45,7 +45,12 @@ class DocRouter {
             filters.name = ctx.query.microservice;
             logger.debug('filters ', filters);
             const microservice = await MicroserviceModel.findOne(filters);
-            ctx.body = microservice.swagger;
+            if (microservice) {
+                microservice.swagger.host = config.get('server.publicUrl').replace('http://', '').replace('https://', '');
+                ctx.body = microservice.swagger;
+            } else {
+                logger.info('Microservice not found');
+            }
             return;
         }
         if (ctx.query.tag) {
