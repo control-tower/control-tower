@@ -7,33 +7,30 @@ const bsyslog = require('node-bunyan-syslog-udp');
 module.exports = (function createLogger() {
     const streams = [];
 
-    switch(config.get('logger.type')) {
+    switch (config.get('logger.type')) {
         case 'syslog':
             streams.push({
-                type: 'raw', // Always use 'raw' bunyan stream 
+                type: 'raw',
                 level: config.get('logger.level') || 'debug',
                 stream: bsyslog.createBunyanStream({
-                    name: 'control-tower',    
-                    host: config.get('logger.syslog.host'),  
-                    port: config.get('logger.syslog.port'), 
-                    facility: 'local0' 
+                    name: 'control-tower',
+                    host: config.get('logger.syslog.host'),
+                    port: config.get('logger.syslog.port'),
+                    facility: 'local0'
                 })
             });
-        break;
+            break;
         case 'console':
             streams.push({
                 level: config.get('logger.level') || 'debug',
                 stream: process.stdout,
             });
-        break;
+            break;
+        default:
+            break;
+
     }
 
-    if (config.get('logger.toFile')) {
-        streams.push({
-            level: config.get('logger.level') || 'debug',
-            path: config.get('logger.dirLogFile'),
-        });
-    } else if (config.get('logger.type') === 'syslog') {
     const logger = bunyan.createLogger({
         name: config.get('logger.name'),
         streams,
@@ -41,4 +38,3 @@ module.exports = (function createLogger() {
     return logger;
 
 }());
-
