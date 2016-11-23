@@ -13,7 +13,7 @@ module.exports = (function createLogger() {
                 type: 'raw',
                 level: config.get('logger.level') || 'debug',
                 stream: bsyslog.createBunyanStream({
-                    name: 'control-tower',
+                    name: config.get('logger.syslog.name'),
                     host: config.get('logger.syslog.host'),
                     port: config.get('logger.syslog.port'),
                     facility: 'local0'
