@@ -1,5 +1,6 @@
 {
      "logger": {
+        "level": "info",
         "syslog": {
             "name": "control-tower-staging"
         }
