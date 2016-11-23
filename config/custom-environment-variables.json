@@ -3,6 +3,13 @@
         "host": "MONGO_PORT_27017_TCP_ADDR",
         "port": "MONGO_PORT_27017_TCP_PORT"
     },
+    "logger": {
+        "type": "LOGGER_TYPE",
+        "syslog": {
+            "host": "LOGGER_SYSLOG_HOST",
+            "port": "LOGGER_SYSLOG_PORT"
+        }
+    },
     "server":{
         "internalUrl": "INTERNAL_URL",
         "publicUrl": "PUBLIC_URL"

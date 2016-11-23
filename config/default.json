@@ -1,14 +1,18 @@
 {
     "mongodb": {
         "database": "control_tower_db",
-        "host": "192.168.99.100",
+        "host": "localhost",
         "port": 27017
     },
     "logger": {
         "name": "API-Gateway-DEV",
         "level": "debug",
-        "toFile": false,
-        "dirLogFile": null
+        "type": "local",
+        "syslog": {
+            "host": "",
+            "port": null,
+            "name": "control-tower-dev"
+        }
     },
     "server": {
         "port": 9000,
