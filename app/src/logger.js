@@ -1,6 +1,6 @@
 const config = require('config');
 const bunyan = require('bunyan');
-const bsyslog = require('node-bunyan-syslog-udp');
+const bsyslog = require('bunyan-syslog-udp');
 /**
  * Create Logger
  */
