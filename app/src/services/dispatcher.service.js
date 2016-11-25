@@ -93,6 +93,7 @@ class Dispatcher {
                         return false;
                     }
                 }
+                return true;
             }
         }
         if (condition === 'OR') {
