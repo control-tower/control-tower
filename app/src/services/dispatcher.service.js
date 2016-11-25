@@ -69,27 +69,36 @@ class Dispatcher {
     static checkCompare(compare, dataFilter, condition = 'AND') {
         logger.debug('Check compare filter to filter', compare, 'and dataFilter', dataFilter);
         if (compare && dataFilter) {
-            const compareKeys = Object.keys(compare);
-
-            for (let i = 0, length = compareKeys.length; i < length; i++) {
-                const key = compareKeys[i];
-                if (typeof compare[key] === 'object') {
-                    logger.debug('IS A OBJECT');
-                    const match = Dispatcher.checkCompare(compare[key], dataFilter[key], condition);
+            if (compare instanceof Array) {
+                for (let j = 0, lengthCompare = compare.length; j < lengthCompare; j++) {
+                    const match = Dispatcher.checkCompare(compare[j], dataFilter, condition);
                     if (match && condition === 'OR') {
                         return true;
                     } else if (!match && condition === 'AND') {
                         return false;
                     }
-                } else if (compare[key] !== dataFilter[key]) {
-                    return false;
+                }
+            } else {
+                const compareKeys = Object.keys(compare);
+
+                for (let i = 0, length = compareKeys.length; i < length; i++) {
+                    const key = compareKeys[i];
+                    if (typeof compare[key] === 'object') {
+                        logger.debug('IS A OBJECT');
+                        const match = Dispatcher.checkCompare(compare[key], dataFilter[key], condition);
+                        if (!match) {
+                            return false;
+                        }
+                    } else if (compare[key] !== dataFilter[key]) {
+                        return false;
+                    }
                 }
             }
-            if (condition === 'OR') {
-                return false;
-            } else if (condition === 'AND') {
-                return true;
-            }
+        }
+        if (condition === 'OR') {
+            return false;
+        } else if (condition === 'AND') {
+            return true;
         }
         return false;
     }
