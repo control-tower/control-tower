@@ -66,7 +66,7 @@ class Dispatcher {
     }
 
 
-    static checkCompare(compare, dataFilter) {
+    static checkCompare(compare, condition, dataFilter) {
         logger.debug('Check compare filter to filter', compare, 'and dataFilter', dataFilter);
         if (compare && dataFilter) {
             const compareKeys = Object.keys(compare);
@@ -76,14 +76,20 @@ class Dispatcher {
                 if (typeof compare[key] === 'object') {
                     logger.debug('IS A OBJECT');
                     const match = Dispatcher.checkCompare(compare[key], dataFilter[key]);
-                    if (!match) {
+                    if (match && condition === 'OR') {
+                        return true;
+                    } else if (!match && condition === 'AND') {
                         return false;
                     }
                 } else if (compare[key] !== dataFilter[key]) {
                     return false;
                 }
             }
-            return true;
+            if (condition === 'OR') {
+                return false;
+            } else if (condition === 'AND') {
+                return true;
+            }
         }
         return false;
     }
@@ -97,7 +103,7 @@ class Dispatcher {
             if (redirect.filters) {
                 for (let j = 0, lengthRF = redirect.filters.length; j < lengthRF; j++) {
                     const filterValue = Dispatcher.searchFilterValue(redirect.filters[j], filters);
-                    if (!filterValue || !Dispatcher.checkCompare(redirect.filters[j].compare, filterValue)) {
+                    if (!filterValue || !Dispatcher.checkCompare(redirect.filters[j].compare, redirect.filters[j].condition, filterValue)) {
                         logger.warn('Not valid filter');
                         valid = false;
                         break;
