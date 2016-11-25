@@ -39,6 +39,7 @@ class Microservice {
                     name: endpoint.filters[i].name,
                     path: endpoint.filters[i].path,
                     method: endpoint.filters[i].method,
+                    condition: endpoint.filters[i].condition,
                     pathRegex,
                     pathKeys,
                     params: endpoint.filters[i].params,
