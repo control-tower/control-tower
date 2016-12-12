@@ -263,7 +263,7 @@ class Microservice {
         });
         const version = versionFound.version;
 
-        const errorMicroservices = await Microservice.find({ status: MICRO_STATUS_ERROR, version });
+        const errorMicroservices = await MicroserviceModel.find({ status: MICRO_STATUS_ERROR, version });
         if (errorMicroservices && errorMicroservices.length > 0) {
             for (let i = 0, length = errorMicroservices.length; i < length; i++) {
                 const micro = errorMicroservices[i];
