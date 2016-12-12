@@ -26,7 +26,7 @@ async function tick() {
         if (crypto.createHash('md5').update(JSON.stringify(services)).digest('hex') !== oldHashServices) {
             logger.info('Sleeping to wait run microservices');
             oldHashServices = crypto.createHash('md5').update(JSON.stringify(services)).digest('hex');
-            await sleep(30000);
+            // await sleep(30000);
             logger.info('Registering microservices');
             await MicroserviceService.registerPackMicroservices(services);
         } else {
@@ -37,4 +37,15 @@ async function tick() {
     }
 }
 
+async function checkErrorMicroservices() {
+    try {
+        await MicroserviceService.tryRegisterErrorMicroservices();        
+    } catch (err) {
+        logger.error('Error in checkErrorMicroservices', err);
+    }
+}
+
+
+
 new CronJob('*/10 * * * * *', tick, null, true, 'America/Los_Angeles'); // eslint-disable-line no-new
+new CronJob('*/10 * * * * *', checkErrorMicroservices, null, true, 'America/Los_Angeles'); // eslint-disable-line no-new

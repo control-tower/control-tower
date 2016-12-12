@@ -256,6 +256,34 @@ class Microservice {
         return micro;
     }
 
+    static async tryRegisterErrorMicroservices() {
+        logger.info('Trying register microservices with status error');
+        const versionFound = await VersionModel.findOne({
+            name: appConstants.ENDPOINT_VERSION,
+        });
+        const version = versionFound.version;
+
+        const errorMicroservices = await Microservice.find({ status: MICRO_STATUS_ERROR, version });
+        if (errorMicroservices && errorMicroservices.length > 0) {
+            for (let i = 0, length = errorMicroservices.length; i < length; i++) {
+                const micro = errorMicroservices[i];
+                const correct = await Microservice.getInfoMicroservice(micro, version);
+                if (correct) {
+                    logger.info(`Updating state of microservice with name ${micro.name}`);
+                    micro.status = MICRO_STATUS_ACTIVE;
+                    await micro.save();
+                    logger.info('Updated successfully');
+                } else {
+                    logger.info(`Updated to error state microservice with name ${micro.name}`);
+                    micro.status = MICRO_STATUS_ERROR;
+                    await micro.save();
+                }
+            }
+        } else {
+            logger.info('Not exist microservices in error state');
+        }
+    }
+
     static async removeEndpointOfMicroservice(micro) {
         logger.info(`Removing endpoints of microservice with url ${micro.url}`);
         if (micro && micro.endpoints) {
