@@ -16,3 +16,8 @@ mongo:
   extends:
     file: base.yml
     service: mongo
+
+redis:
+  extends:
+    file: base.yml
+    service: redis
