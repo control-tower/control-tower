@@ -21,7 +21,17 @@ const ALLOWED_HEADERS = [
 class Dispatcher {
 
     static getLoggedUser(ctx) {
-        return ctx.state.user || ctx.req.user || ctx.state.microservice;
+        if (ctx.state) {
+            if (ctx.state.user) {
+                return ctx.state.user;
+            } else if (ctx.state.microservice) {
+                return ctx.state.microservice;
+            }
+        }
+        if (ctx.req && ctx.req.user) {
+            return ctx.req.user;
+        }
+        return null;
     }
 
     static async buildUrl(sourcePath, redirectEndpoint, endpoint) {

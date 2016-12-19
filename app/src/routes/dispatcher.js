@@ -13,6 +13,8 @@ const router = new Router();
 const requestPromise = require('request-promise');
 const request = require('request');
 
+const passThrough = require('stream').PassThrough;
+
 const unlink = async(file) =>
     new Promise((resolve, reject) => {
         fs.unlink(file, (err) => {
@@ -38,7 +40,7 @@ function getHeadersFromResponse(response) {
     const validHeaders = {};
     const keys = Object.keys(response.headers);
     for (let i = 0, length = keys.length; i < length; i++) {
-        if (ALLOWED_HEADERS.indexOf(keys[1].toLowerCase()) > -1) {
+        if (ALLOWED_HEADERS.indexOf(keys[i].toLowerCase()) > -1) {
             validHeaders[keys[i]] = response.headers[keys[i]];
         }
     }
@@ -74,40 +76,49 @@ class DispatcherRouter {
             configRequest.followRedirect = false;
 
             logger.debug('Config request', configRequest);
-            
-            const result = await requestPromise(configRequest);
-            // set headers
-            ctx.set(getHeadersFromResponse(result));
-            ctx.status = result.statusCode;
-            if (ctx.status >= 400 && ctx.status < 500) {
-                let body = result.body;
-                if (body instanceof Buffer) {
-                    body = body.toString('utf8');
-                }
-                logger.error('error body', body);
-                if (body.errors && body.errors.length > 0) {
-                    ctx.body = body;
-                } else {
-                    if (process.env.NODE_ENV === 'prod') {
-                        ctx.throw(500, 'Unexpected error');
+            if (configRequest.binary) {
+                logger.debug('Is binary, doing request with stream');
+                const req = request(configRequest);
+                req.on('response', (response) => {
+                    ctx.response.status = response.statusCode;
+                    ctx.set(getHeadersFromResponse(response));
+                });
+                ctx.body = req.on('error', ctx.onerror).pipe(passThrough());
+            } else {
+                const result = await requestPromise(configRequest);
+                // set headers
+                ctx.set(getHeadersFromResponse(result));
+                ctx.status = result.statusCode;
+                if (ctx.status >= 400 && ctx.status < 500) {
+                    let body = result.body;
+                    if (body instanceof Buffer) {
+                        body = body.toString('utf8');
+                    }
+                    logger.error('error body', body);
+                    if (body.errors && body.errors.length > 0) {
+                        ctx.body = body;
+                    } else {
+                        if (process.env.NODE_ENV === 'prod') {
+                            ctx.throw(500, 'Unexpected error');
+                            return;
+                        }
+                        let message = '';
+                        if (body.error) {
+                            message += body.error;
+                        }
+                        if (body.exception) {
+                            message += ` --- ${body.exception}`;
+                        }
+                        if (!body.exception && !body.error) {
+                            message = body;
+                        }
+                        ctx.throw(result.statusCode || 500, message);
                         return;
                     }
-                    let message = '';
-                    if (body.error) {
-                        message += body.error;
-                    }
-                    if (body.exception) {
-                        message += ` --- ${body.exception}`;
-                    }
-                    if (!body.exception && !body.error) {
-                        message = body;
-                    }
-                    ctx.throw(result.statusCode || 500, message);
-                    return;
                 }
+                ctx.body = result.body;
+                ctx.response.type = result.headers['content-type'];
             }
-            ctx.body = result.body;
-            ctx.response.type = result.headers['content-type'];
             
         } catch (err) {
             logger.error(err);
