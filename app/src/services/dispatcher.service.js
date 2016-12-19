@@ -282,13 +282,12 @@ class Dispatcher {
                     configRequest.body = ctx.request.body;
                 }
             }
-            if (redirectEndpoint.data || endpoint.authenticated) {
+            logger.debug('Adding logged user if it is logged');
+            redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
+                loggedUser: Dispatcher.getLoggedUser(ctx),
+            });
+            if (redirectEndpoint.data) {
                 logger.debug('Adding data');
-                if (endpoint.authenticated) {
-                    redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
-                        loggedUser: Dispatcher.getLoggedUser(ctx),
-                    });
-                }
                 if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
                     configRequest.qs = configRequest.qs || {};
                     const keys = Object.keys(redirectEndpoint.data);
