@@ -3,6 +3,7 @@ const Microservice = require('models/microservice.model');
 const Endpoint = require('models/endpoint.model');
 const Version = require('models/version.model');
 const appConstants = require('app.constants');
+const loader = require('loader');
 const logger = require('logger');
 
 module.exports = async function init() {
@@ -78,16 +79,19 @@ module.exports = async function init() {
                 confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
             },
             basic: {
-                active: false,
+                active: true,
                 userId: process.env.BASICAUTH_USERNAME,
                 password: process.env.BASICAUTH_PASSWORD,
                 role: 'ADMIN',
             },
             jwt: {
-                active: false,
+                active: true,
                 secret: process.env.JWT_SECRET,
                 passthrough: true,
-                expiresInMinutes: 0,
+                expiresInMinutes: 5,
+            },
+            application: {
+                secret: process.env.JWT_SECRET_APPLICATION,
             },
             publicUrl: process.env.PUBLIC_URL,
         },
@@ -111,4 +115,7 @@ module.exports = async function init() {
     await Endpoint.remove({});
     await Version.remove({});
     await new Version({ name: appConstants.ENDPOINT_VERSION, version: 1 }).save();
+
+    logger.info('Executing migrations of plugins');
+    await loader.migratePlugins();
 };

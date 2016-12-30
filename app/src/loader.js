@@ -29,6 +29,27 @@ async function loadPlugins(app) {
     });
 }
 
+async function migratePlugins() {
+    logger.info('Migrate plugins');
+    const generalConfig = getGeneralConfig();
+    const plugins = await Plugin.find({
+        active: true,
+    });
+    plugins.forEach(async (plugin) => {
+        try {
+            const file = require(plugin.mainFile); // eslint-disable-line global-require
+            if (file.migrate) {
+                logger.info(`Migrate ${plugin.name} plugin`);
+                await file.migrate(plugin, generalConfig);
+            }
+        } catch (e) {
+            logger.error(e);
+            throw e;
+        }
+    });
+    logger.debug('Finished migrate plugins');
+}
+
 async function loadCronsPlugins() {
     logger.info('Loading crons of plugins');
     const generalConfig = getGeneralConfig();
@@ -99,4 +120,5 @@ module.exports = {
     loadPlugins,
     loadRoutes,
     loadCronsPlugins,
+    migratePlugins
 };

@@ -1,7 +1,17 @@
 const logger = require('logger');
 
 function getUser(ctx) {
-    return ctx.req.user || ctx.state.user;
+    if (ctx.state) {
+        if (ctx.state.user) {
+            return ctx.state.user;
+        } else if (ctx.state.microservice) {
+            return ctx.state.microservice;
+        }
+    }
+    if (ctx.req && ctx.req.user) {
+        return ctx.req.user;
+    }
+    return null;
 }
 
 async function isLogged(ctx, next) {

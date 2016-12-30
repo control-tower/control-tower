@@ -31,11 +31,6 @@ async function onDbReady(err) {
     }
     // set promises in mongoose with bluebird
     mongoose.Promise = bluebird;
-    logger.debug('migration', process.env.EXEC_MIGRATION);
-    if (process.env.EXEC_MIGRATION === 'true') {
-        logger.info('Executing migration...');
-        await require('migrations/init')(); // eslint-disable-line global-require
-    }
 
     const app = new Koa();
 
@@ -49,6 +44,11 @@ async function onDbReady(err) {
 
     app.listen(process.env.PORT);
     logger.info('Server started in ', process.env.PORT);
+
+    if (process.env.EXEC_MIGRATION === 'true') {
+        logger.info('Executing migration...');
+        await require('migrations/init')(); // eslint-disable-line global-require
+    }
 }
 
 mongoose.connect(mongoUri, onDbReady);

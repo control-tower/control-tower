@@ -9,6 +9,7 @@ develop:
   command: develop
   links:
     - mongo
+    - redis
   volumes:
     - ./app:/opt/control-tower/app
 

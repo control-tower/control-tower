@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "PORT=9000 NODE_PATH=app/src DEBUG=oauth-plugin,stadistics-plugin,redis-cache-plugin grunt --gruntfile app/Gruntfile.js | bunyan",
+    "dev": "PORT=9000 NODE_PATH=app/src DEBUG=oauth-plugin,stadistics-plugin,redis-cache-plugin grunt --gruntfile app/Gruntfile.js",
     "run": "PORT=9000 NODE_PATH=app/src DEBUG=oauth-plugin,stadistics-plugin,redis-cache-plugin node app/index.js | bunyan",
     "cron": "PORT=9000 NODE_PATH=app/src DEBUG=oauth-plugin,stadistics-plugin,redis-cache-plugin node app/index-crons.js | bunyan",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -47,7 +47,7 @@
     "config": "^1.21.0",
     "cron": "^1.1.0",
     "ct-oauth-plugin": "^1.3.9",
-    "ct-redis-cache-plugin": "^1.0.3",
+    "ct-redis-cache-plugin": "^1.1.0",
     "ct-stadistics-plugin": "1.1.4",
     "dotenv": "^2.0.0",
     "instapush": "0.0.7",

@@ -5,3 +5,5 @@ prod.env
 staging.env
 npm-debug.log
 IMPORTANT.txt
+.vscode
+processes.json
