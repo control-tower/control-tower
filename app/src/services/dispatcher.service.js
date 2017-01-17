@@ -304,13 +304,35 @@ class Dispatcher {
                 let formData = {}; // eslint-disable-line prefer-const
                 for (const key in files) { // eslint-disable-line no-restricted-syntax
                     if ({}.hasOwnProperty.call(files, key)) {
-                        formData[key] = fs.createReadStream(files[key].path);
+                        formData[key] = {
+                            value: fs.createReadStream(files[key].path),
+                            options: {
+                                filename: files[key].name,
+                                contentType: files[key].type
+                            }
+                        };
                     }
                 }
-                configRequest.body = Object.assign(configRequest.body || {}, formData);
-                delete configRequest.body.files;
-                // delete configRequest.body.fields;
+                if (configRequest.body) {
+                    const body = {};
+                    // convert values to string because form-data is required that all values are string
+                    for (const key in configRequest.body) { // eslint-disable-line no-restricted-syntax
+                        if (key !== 'files') {
+                            if (configRequest.body[key] !== null && configRequest.body[key] !== undefined) {
+                                body[key] = JSON.stringify(configRequest.body[key]);
+                            } else {
+                                body[key] = 'null';
+                            }
+                        }
+                    }
+                    configRequest.body = Object.assign(body, formData);
+                } else {
+                    configRequest.body = formData;
+                }
+
                 configRequest.multipart = true;
+
+
             }
             if (ctx.request.headers) {
                 logger.debug('Adding headers');
