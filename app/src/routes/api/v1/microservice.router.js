@@ -53,8 +53,8 @@ class MicroserviceRouter {
 
 }
 
-router.get('/', Utils.isLogged, Utils.isAdmin, MicroserviceRouter.get);
+router.get('/', Utils.isLogged, Utils.isCTAdmin, MicroserviceRouter.get);
 router.post('/', MicroserviceRouter.register);
-router.delete('/:id', Utils.isLogged, Utils.isAdmin, MicroserviceRouter.delete);
+router.delete('/:id', Utils.isLogged, Utils.isCTAdmin, MicroserviceRouter.delete);
 
 module.exports = router;

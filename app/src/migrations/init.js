@@ -88,7 +88,7 @@ module.exports = async function init() {
                 active: true,
                 secret: process.env.JWT_SECRET,
                 passthrough: true,
-                expiresInMinutes: 5,
+                expiresInMinutes: 60,
             },
             application: {
                 secret: process.env.JWT_SECRET_APPLICATION,

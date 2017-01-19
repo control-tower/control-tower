@@ -1,5 +1,7 @@
 const logger = require('logger');
 
+const CONTROL_TOWER = 'control-tower';
+
 function getUser(ctx) {
     if (ctx.state) {
         if (ctx.state.user) {
@@ -24,10 +26,20 @@ async function isLogged(ctx, next) {
     }
 }
 
-async function isAdmin(ctx, next) {
-    logger.debug('Checking if user is admin');
+
+async function isCTAdmin(ctx, next) {
+    logger.debug('Checking if user is admin in control-tower');
     const user = getUser(ctx);
-    if (user && user.role === 'ADMIN') {
+    let find = false;
+    if (user.roles) {
+        for (let i = 0, length = user.roles.length; i < length; i++) {
+            if (user.roles[i].name === CONTROL_TOWER && user.roles[i].role === 'ADMIN') {
+                find = true;
+                break;
+            }
+        }
+    }
+    if (find) {
         await next();
     } else {
         logger.debug('Not admin');
@@ -36,6 +48,6 @@ async function isAdmin(ctx, next) {
 }
 
 module.exports = {
-    isAdmin,
     isLogged,
+    isCTAdmin,
 };

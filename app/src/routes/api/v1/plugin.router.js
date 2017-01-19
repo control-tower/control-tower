@@ -40,7 +40,7 @@ class PluginRouter {
 }
 
 
-router.get('/', Utils.isLogged, Utils.isAdmin, PluginRouter.get);
-router.patch('/:id', Utils.isLogged, Utils.isAdmin, PluginRouter.update);
+router.get('/', Utils.isLogged, Utils.isCTAdmin, PluginRouter.get);
+router.patch('/:id', Utils.isLogged, Utils.isCTAdmin, PluginRouter.update);
 
 module.exports = router;

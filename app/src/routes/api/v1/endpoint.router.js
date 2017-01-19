@@ -25,6 +25,6 @@ class EndpointRouter {
 
 }
 
-router.get('/', Utils.isLogged, Utils.isAdmin, EndpointRouter.get);
+router.get('/', Utils.isLogged, Utils.isCTAdmin, EndpointRouter.get);
 
 module.exports = router;
