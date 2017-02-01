@@ -29,7 +29,7 @@ class MicroserviceRouter {
             name: appConstants.ENDPOINT_VERSION,
         });
         logger.debug('Found', versionFound);
-        ctx.body = await MicroserviceModel.find({ version: versionFound.version }, { name: 1, infoStatus: 1, _id: 0 });
+        ctx.body = await MicroserviceModel.find({ version: versionFound.version }, { name: 1, infoStatus: 1, status: 1, _id: 0 });
     }
 
     static async register(ctx) {
