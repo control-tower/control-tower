@@ -45,7 +45,7 @@ module.exports = async function init() {
         active: true,
         config: {
             cookieDomain: process.env.COOKIE_DOMAIN,
-            sessionKey: process.env.SESSION_KEY,
+            sessionKey: process.env.SESSION_KEY || 'control-tower',
         },
     }).save();
 
@@ -73,7 +73,7 @@ module.exports = async function init() {
                 scope: 'email',
             },
             local: {
-                active: true,
+                active: false,
                 sparkpostKey: process.env.SPARKPOST_KEY,
                 confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
             },
@@ -84,7 +84,7 @@ module.exports = async function init() {
                 role: 'ADMIN',
             },
             jwt: {
-                active: false,
+                active: true,
                 secret: process.env.JWT_SECRET,
                 passthrough: true,
                 expiresInMinutes: 0,

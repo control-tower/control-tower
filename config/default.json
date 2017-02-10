@@ -7,7 +7,7 @@
     "logger": {
         "name": "API-Gateway-DEV",
         "level": "debug",
-        "type": "local",
+        "type": "console",
         "syslog": {
             "host": "",
             "port": null,

@@ -95,6 +95,11 @@ class DispatcherRouter {
                         body = body.toString('utf8');
                     }
                     logger.error('error body', body);
+                    try {
+                        body = JSON.parse(result.body);
+                    } catch (e) {
+                        //
+                    }
                     if (body.errors && body.errors.length > 0) {
                         ctx.body = body;
                     } else {
