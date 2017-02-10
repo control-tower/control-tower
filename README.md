@@ -1,9 +1,9 @@
-# Control tower API-Gateway
+# Control tower: API Gateway on Steroids
 
 <img src="https://avatars0.githubusercontent.com/u/20566771?v=3&s=200" style="display: block; margin: 0 auto;">
 
 
-<h1 style="text-align: center">API Gateway on Steroids</h1>
+
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
