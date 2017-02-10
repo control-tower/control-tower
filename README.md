@@ -11,25 +11,25 @@
 
 You only have to follow 4 steps:
 
-1. Clone the repository
+1 - Clone the repository
 
 ```
 git clone https://github.com/control-tower/control-tower.git
 ```
 
-2. Enter in the cloned path
+2 - Enter in the cloned path
 
 ```
 cd control-tower
 ```
 
-3. Create and complete your dev.env file with your configuration. To know the mean of each variable, you visit this [section](#documentation-environment-variables). You have a example .env file in the project. It is .env.sample
+3 - Create and complete your dev.env file with your configuration. To know the mean of each variable, you visit this [section](#documentation-environment-variables). You have a example .env file in the project. It is .env.sample
 
-4. Raise Control-tower with docker. You need docker installed in your machine. If you need install it, you visit this [web](https://www.docker.com/products/docker). You only execute the next command to run Control tower:
+4 - Raise Control-tower with docker. You need docker installed in your machine. If you need install it, you visit this [web](https://www.docker.com/products/docker). You only execute the next command to run Control tower:
 
 Recommendation:
 
-5. Add your hosts file the next line:
+5 - Add your hosts file the next line:
 
 ```
 mymachine   <yourIP>
