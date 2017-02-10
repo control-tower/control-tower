@@ -16,14 +16,14 @@ git clone https://github.com/control-tower/control-tower.git && cd control-tower
 
 2 - Create and complete your dev.env file with your configuration. The meaning of the variables is available in this [section](#documentation-environment-variables). You can find an example .env file in the project root.
 
-3 - Raise Control Tower with Docker. You'll of course need Docker, and also Docker Compose installed in your machine. If you need to install it, visit this [web](https://www.docker.com/products/docker). You only need to execute the next command to run Control tower:
+3 - Raise Control Tower with Docker. You'll of course need Docker, and also Docker Compose installed in your machine. If you need to install it, visit this [web](https://www.docker.com/products/docker). You only need to execute the following command to run Control tower:
 
 ```
 ./controlTower.sh develop
 ```
 
 
-4 - It's recommended to add the next line to your `/etc/hosts` (if you are in Windows, the hosts file is located in `c:\Windows\System32\Drivers\etc\hosts` and you'll need to 'Run as administrator' your editor):
+4 - It's recommended to add the following line to your `/etc/hosts` (if you are in Windows, the hosts file is located in `c:\Windows\System32\Drivers\etc\hosts` and you'll need to 'Run as administrator' your editor):
 
 ```
 mymachine   <yourIP>
