@@ -1,12 +1,6 @@
-;; This buffer is for text that is not saved, and for Lisp evaluation.
-;; To create a file, visit it with <open> and enter text in its buffer.
-
-# Control tower: API Gateway on Steroids
+# Control Tower: API Gateway on Steroids
 
 <img src="https://avatars0.githubusercontent.com/u/20566771?v=3&s=200" style="display: block; margin: 0 auto;">
-
-
-
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
@@ -20,13 +14,16 @@ You only have to follow 4 steps:
 git clone https://github.com/control-tower/control-tower.git && cd control-tower
 ```
 
-2 - Create and complete your dev.env file with your configuration. To know the mean of each variable, you visit this [section](#documentation-environment-variables). You have a example .env file in the project. It is .env.sample
+2 - Create and complete your dev.env file with your configuration. The meaning of the variables is available in this [section](#documentation-environment-variables). You can find an example .env file in the project root.
 
-3 - Raise Control-tower with docker. You need docker installed in your machine. If you need install it, you visit this [web](https://www.docker.com/products/docker). You only execute the next command to run Control tower:
+3 - Raise Control Tower with Docker. You'll of course need Docker, and also Docker Compose installed in your machine. If you need to install it, visit this [web](https://www.docker.com/products/docker). You only need to execute the following command to run Control tower:
 
-Recommendation:
+```
+./controlTower.sh develop
+```
 
-4 - Add the next line to your `/etc/hosts`:
+
+4 - It's recommended to add the following line to your `/etc/hosts` (if you are in Windows, the hosts file is located in `c:\Windows\System32\Drivers\etc\hosts` and you'll need to 'Run as administrator' your editor):
 
 ```
 mymachine   <yourIP>
@@ -34,7 +31,7 @@ mymachine   <yourIP>
 
 Enjoy your brand new Control Tower!!!
 
-To check if Control tower works, you can do a request to [http://mymachine:9000](http://mymachine:9000/) and the response should be 404 if you haven't registered already a microservice.
+To check if Control Tower works, you can do a request to [http://mymachine:9000](http://mymachine:9000/) and the response should be 404 if you haven't registered already a microservice.
 
 
 ```bash
@@ -45,7 +42,7 @@ To check if Control tower works, you can do a request to [http://mymachine:9000]
 
 ### Authentication
 
-A JWT token contains the next information:
+A JWT token contains the following information:
 
 ```json
 {
@@ -136,7 +133,7 @@ TODO
 4. Push the commit to the branch: `git push origin feature/my-new-feature`
 5. Submit a pull request :D
 
-## Authors 
+## Contributors
 
   <a href="https://github.com/rrequero" target="_blank" style="display: inline-block">
     <img src="https://secure.gravatar.com/avatar/88658283520e4fa50fd767c8b52bf4f8?s=80">
@@ -149,4 +146,9 @@ TODO
   <a href="https://github.com/hectoruch" target="_blank" style="display: inline-block">
     <img src="https://avatars2.githubusercontent.com/u/8074563?v=3&s=80">
   </a>
+
+  <a href="https://github.com/EnriqueCornejo" target="_blank" style="display: inline-block">
+    <img src="https://avatars0.githubusercontent.com/u/411529?v=3&s=80">
+  </a>
+
 
