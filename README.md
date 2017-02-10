@@ -23,32 +23,33 @@ git clone https://github.com/control-tower/control-tower.git
 cd control-tower
 ```
 
-3 - Create and complete your dev.env file with your configuration. To know the mean of each variable, you visit this [section](#documentation-environment-variables). You have a example .env file in the project. It is .env.sample
+3 - Create and complete your dev.env file with your configuration. To know the mean of each variable, visit this [section](#environment-variables). You have an example .env file in the project. It is .env.sample
 
-4 - Raise Control-tower with docker. You need docker installed in your machine. If you need install it, you visit this [web](https://www.docker.com/products/docker). You only execute the next command to run Control tower:
-
-Recommendation:
-
-5 - Add your hosts file the next line:
-
-```
-mymachine   <yourIP>
-```
-
-Enjoy of your Control Tower!!!
-
-To check if Control tower works, you can do a request to [http://mymachine:9000](http://mymachine:9000/) and the response must be 404 (in the case that you don't have microservice registered in it)
-
+4 - Raise Control tower with docker. You need docker installed in your machine. If you need install it, visit this [web](https://www.docker.com/products/docker). You only execute the next command to run Control tower:
 
 ```bash
 ./controlTower.sh develop
 ```
 
+
+Recommendation:
+
+5 - Add the next line to your hosts file:
+
+```
+mymachine   <yourIP>
+```
+
+Enjoy your Control tower!!!
+
+To check if Control tower works, you can do a request to [http://mymachine:9000](http://mymachine:9000/) and the response should be 404 (in the case that you don't have microservice registered in it)
+
+
 ## Documentation
 
 ### Authentication
 
-A JWT token contains the next information:
+A JWT token contains the following information:
 
 ```json
 {
@@ -71,6 +72,12 @@ A JWT token contains the next information:
 ```
 
 In local, you can use the next tokens to identify diferents users (Generated with mysecret key).
+To authorize your request, you have to set a new header with the following information:
+
+```
+name: Authenticated
+value: Bearer <token>
+```
 
 Role USER with all Applications
 Token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhMTBkN2M2ZTBhMzcxMjY2MTFmZDdhNyIsInJvbGUiOiJVU0VSIiwicHJvdmlkZXIiOiJsb2NhbCIsImVtYWlsIjoidXNlckBjb250cm9sLXRvd2VyLm9yZyIsImV4dHJhVXNlckRhdGEiOnsiYXBwcyI6WyJydyIsImdmdyIsImdmdy1jbGltYXRlIiwicHJlcCIsImFxdWVkdWN0IiwiZm9yZXN0LWF0bGFzIiwiZGF0YTRzZGdzIl19fQ.eePyj9grA2akg2vKqmLz5Gg8hd2Afq64ZaeGLb-aLC0`
