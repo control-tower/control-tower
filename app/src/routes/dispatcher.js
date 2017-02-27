@@ -44,6 +44,7 @@ function getHeadersFromResponse(response) {
             validHeaders[keys[i]] = response.headers[keys[i]];
         }
     }
+    logger.debug('Valid-headers', validHeaders);
     return validHeaders;
 }
 
