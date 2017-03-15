@@ -33,7 +33,8 @@ const ALLOWED_HEADERS = [
     'charset',
     'location',
     'content-disposition',
-    'content-type'
+    'content-type',
+    'content-encoding'
 ];
 
 function getHeadersFromResponse(response) {
