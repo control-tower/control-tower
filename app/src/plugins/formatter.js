@@ -13,7 +13,7 @@ function middleware(app) {
                 switch (ctx.query.format) {
 
                 case 'xml':
-                    ctx.body = `<?xml version="1.0" encoding="UTF-8"?>${json2xml(ctx.body)}`;
+                    ctx.body = `<?xml version="1.0" encoding="UTF-8"?>${json2xml({ root: ctx.body })}`;
                     ctx.set('content-type', 'application/xml');
                     break;
                 default:
