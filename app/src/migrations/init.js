@@ -30,6 +30,12 @@ module.exports = async function init() {
         mainFile: 'plugins/cors',
         active: true,
     }).save();
+    await new Plugin({
+        name: 'formatter',
+        description: 'Formatter response',
+        mainFile: 'plugins/formatter',
+        active: true,
+    }).save();
 
     await new Plugin({
         name: 'stadistics',

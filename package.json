@@ -51,6 +51,7 @@
     "ct-stadistics-plugin": "1.2.0",
     "dotenv": "^2.0.0",
     "instapush": "0.0.7",
+    "json2xml": "^0.1.3",
     "jsonwebtoken": "^7.1.9",
     "kcors": "^2.1.1",
     "koa": "^2.0.0",
