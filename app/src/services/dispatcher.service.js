@@ -319,7 +319,11 @@ class Dispatcher {
                     for (const key in configRequest.body) { // eslint-disable-line no-restricted-syntax
                         if (key !== 'files') {
                             if (configRequest.body[key] !== null && configRequest.body[key] !== undefined) {
-                                body[key] = JSON.stringify(configRequest.body[key]);
+                                if(typeof configRequest.body[key] === 'object') {
+                                    body[key] = JSON.stringify(configRequest.body[key]);
+                                } else {
+                                    body[key] = configRequest.body[key];
+                                }
                             } else {
                                 body[key] = 'null';
                             }
