@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:6.2
+FROM node:7.9-alpine
 MAINTAINER raul.requero@vizzuality.com
 
 ENV NAME control-tower
@@ -25,6 +25,6 @@ RUN chown $USER:$USER /opt/$NAME
 
 # Tell Docker we are going to use this ports
 EXPOSE 9000
-USER $USER
+#USER $USER
 
 ENTRYPOINT ["./entrypoint.sh"]

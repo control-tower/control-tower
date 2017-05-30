@@ -8,7 +8,6 @@ const NotAuthenticated = require('errors/notAuthenticated');
 const FilterError = require('errors/filterError');
 const pathToRegexp = require('path-to-regexp');
 const requestPromise = require('request-promise');
-const utils = require('utils');
 const fs = require('fs');
 
 const ALLOWED_HEADERS = [
@@ -17,6 +16,12 @@ const ALLOWED_HEADERS = [
     'location',
     'host',
 ];
+
+
+const CACHE = {
+    endpoints: [],
+    version: null
+};
 
 class Dispatcher {
 
@@ -202,7 +207,7 @@ class Dispatcher {
     }
 
     static getHeadersFromRequest(headers) {
-        let validHeaders = {};
+        const validHeaders = {};
         const keys = Object.keys(headers);
         for (let i = 0, length = keys.length; i < length; i++) {
             if (ALLOWED_HEADERS.indexOf(keys[i].toLowerCase()) > -1) {
@@ -212,21 +217,37 @@ class Dispatcher {
         return validHeaders;
     }
 
-    static async getRequest(ctx) {
-        logger.info(`Searching endpoint where redirect url ${ctx.request.url}
-            and method ${ctx.request.method}`);
+    static async reloadEndpoints(version) {
+        logger.info('Reloading endpoints');
+        CACHE.endpoints = await EndpointModel.find({
+            version,
+        });
+        CACHE.version = version;
+
+    }
+
+    static async getEndpoint(pathname, method) {
         logger.debug('Obtaining version');
         const version = await VersionModel.findOne({
             name: appConstants.ENDPOINT_VERSION,
         });
         logger.debug('Version found ', version);
-        const parsedUrl = url.parse(ctx.request.url);
+        if (CACHE.version !== version.version || process.env.NODE_ENV === 'dev') {
+            await Dispatcher.reloadEndpoints(version.version);
+        }
         logger.debug('Searching endpoints');
-        let endpoint = await EndpointModel.findOne({
-            $where: `this.pathRegex && this.pathRegex.test('${parsedUrl.pathname}')`,
-            method: ctx.request.method,
-            version: version.version,
-        });
+        if (!CACHE.endpoints || CACHE.endpoints.length === 0) {
+            return null;
+        }
+        return CACHE.endpoints.find(endpoint => endpoint.method === method && endpoint.pathRegex && endpoint.pathRegex.test(pathname));
+
+    }
+
+    static async getRequest(ctx) {
+        logger.info(`Searching endpoint where redirect url ${ctx.request.url}
+            and method ${ctx.request.method}`);
+        const parsedUrl = url.parse(ctx.request.url);
+        let endpoint = await Dispatcher.getEndpoint(parsedUrl.pathname, ctx.request.method);
 
         if (!endpoint) {
             throw new EndpointNotFound(`${parsedUrl.pathname} not found`);
@@ -319,7 +340,7 @@ class Dispatcher {
                     for (const key in configRequest.body) { // eslint-disable-line no-restricted-syntax
                         if (key !== 'files') {
                             if (configRequest.body[key] !== null && configRequest.body[key] !== undefined) {
-                                if(typeof configRequest.body[key] === 'object') {
+                                if (typeof configRequest.body[key] === 'object') {
                                     body[key] = JSON.stringify(configRequest.body[key]);
                                 } else {
                                     body[key] = configRequest.body[key];
