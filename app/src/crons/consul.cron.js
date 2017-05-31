@@ -6,7 +6,7 @@ const ConsulService = require('services/consul.service');
 const crypto = require('crypto');
 
 let oldHashServices = null;
-
+let running = false;
 
 function sleep(ms = 0) {
     return new Promise(r => setTimeout(r, ms));
@@ -23,12 +23,14 @@ async function tick() {
             tags: service.ServiceTags,
         }));
         logger.debug('Checking if exist changes');
-        if (crypto.createHash('md5').update(JSON.stringify(services)).digest('hex') !== oldHashServices) {
+        if (crypto.createHash('md5').update(JSON.stringify(services)).digest('hex') !== oldHashServices && !running) {
+            running = true;
             logger.info('Sleeping to wait run microservices');
             oldHashServices = crypto.createHash('md5').update(JSON.stringify(services)).digest('hex');
             // await sleep(30000);
             logger.info('Registering microservices');
             await MicroserviceService.registerPackMicroservices(services);
+            running = false;
         } else {
             logger.info('Not exist changes');
         }

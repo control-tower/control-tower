@@ -75,9 +75,13 @@ class Microservice {
                 await oldEndpoint.save();
             } else {
                 logger.debug('Exist redirect. Updating', oldRedirect);
-                oldRedirect.redirect[0].method = endpoint.redirect.method;
-                oldRedirect.redirect[0].path = endpoint.redirect.path;
-                oldRedirect.redirect[0].filters = Microservice.getFilters(endpoint);
+                for (let i = 0, length = oldRedirect.redirect.length; i < length; i++) {
+                    if (oldRedirect.redirect[i].url === endpoint.redirect.url) {
+                        oldRedirect.redirect[i].method = endpoint.redirect.method;
+                        oldRedirect.redirect[i].path = endpoint.redirect.path;
+                        oldRedirect.redirect[i].filters = Microservice.getFilters(endpoint);
+                    }
+                }
                 await oldRedirect.save();
             }
 

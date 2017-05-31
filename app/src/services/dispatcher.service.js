@@ -8,7 +8,6 @@ const NotAuthenticated = require('errors/notAuthenticated');
 const FilterError = require('errors/filterError');
 const pathToRegexp = require('path-to-regexp');
 const requestPromise = require('request-promise');
-const utils = require('utils');
 const fs = require('fs');
 
 const ALLOWED_HEADERS = [
@@ -17,6 +16,12 @@ const ALLOWED_HEADERS = [
     'location',
     'host',
 ];
+
+
+const CACHE = {
+    endpoints: [],
+    version: null
+};
 
 class Dispatcher {
 
@@ -141,17 +146,27 @@ class Dispatcher {
         return validRedirects;
     }
 
+    static cloneEndpoint(endpoint) {
+        const newObject = Object.assign({}, endpoint);
+        newObject.redirect = [];
+        for (let i = 0, length = endpoint.redirect.length; i < length; i++) {
+            newObject.redirect.push(Object.assign({}, endpoint.redirect[i]));
+        }
+        return newObject;
+    }
+
     static async checkFilters(sourcePath, endpoint) {
         logger.debug('Checking filters in endpoint', endpoint);
+        const newEndpoint = Dispatcher.cloneEndpoint(endpoint);
         let filters = [];
-        for (let i = 0, length = endpoint.redirect.length; i < length; i++) {
-            if (endpoint.redirect[i].filters) {
-                filters = filters.concat(endpoint.redirect[i].filters);
+        for (let i = 0, length = newEndpoint.redirect.length; i < length; i++) {
+            if (newEndpoint.redirect[i].filters) {
+                filters = filters.concat(newEndpoint.redirect[i].filters);
             }
         }
         if (!filters || filters.length === 0) {
             logger.debug('Not contain filters. All redirect are valids');
-            return endpoint;
+            return newEndpoint;
         }
         logger.debug('Obtaining data to check filters');
         const promisesRequest = [];
@@ -159,7 +174,7 @@ class Dispatcher {
         let path = null;
         for (let i = 0, length = filters.length; i < length; i++) {
             filter = filters[i];
-            path = await Dispatcher.buildPathFilter(sourcePath, filter, endpoint);
+            path = await Dispatcher.buildPathFilter(sourcePath, filter, newEndpoint);
             const request = await Dispatcher.getRequest({
                 request: {
                     url: path,
@@ -173,12 +188,12 @@ class Dispatcher {
 
         }
         if (!promisesRequest || promisesRequest.length === 0) {
-            return endpoint;
+            return newEndpoint;
         }
         try {
             logger.debug('Doing requests');
             const results = await Promise.all(promisesRequest);
-            // TODO: Add support to serveral filter by each endpoint
+            // TODO: Add support to serveral filter by each newEndpoint
             for (let i = 0, length = results.length; i < length; i++) {
                 if (results[i].statusCode === 200) {
                     filters[i].result = {
@@ -192,17 +207,17 @@ class Dispatcher {
                 }
             }
             logger.debug('Checking valid filters');
-            const validRedirects = Dispatcher.checkValidRedirects(endpoint.redirect, filters);
-            endpoint.redirect = validRedirects;
+            const validRedirects = Dispatcher.checkValidRedirects(newEndpoint.redirect, filters);
+            newEndpoint.redirect = validRedirects;
         } catch (err) {
             logger.error(err);
             throw new FilterError('Error resolving filters');
         }
-        return endpoint;
+        return newEndpoint;
     }
 
     static getHeadersFromRequest(headers) {
-        let validHeaders = {};
+        const validHeaders = {};
         const keys = Object.keys(headers);
         for (let i = 0, length = keys.length; i < length; i++) {
             if (ALLOWED_HEADERS.indexOf(keys[i].toLowerCase()) > -1) {
@@ -212,21 +227,45 @@ class Dispatcher {
         return validHeaders;
     }
 
-    static async getRequest(ctx) {
-        logger.info(`Searching endpoint where redirect url ${ctx.request.url}
-            and method ${ctx.request.method}`);
+    static async reloadEndpoints(version) {
+        logger.fatal('Reloading endpoints');
+        CACHE.endpoints = await EndpointModel.find({
+            version,
+        });
+        CACHE.version = version;
+
+    }
+
+    static async getEndpoint(pathname, method) {
         logger.debug('Obtaining version');
         const version = await VersionModel.findOne({
             name: appConstants.ENDPOINT_VERSION,
         });
         logger.debug('Version found ', version);
-        const parsedUrl = url.parse(ctx.request.url);
+        if (CACHE.version !== version.version) {
+            await Dispatcher.reloadEndpoints(version.version);
+        }
         logger.debug('Searching endpoints');
-        let endpoint = await EndpointModel.findOne({
-            $where: `this.pathRegex && this.pathRegex.test('${parsedUrl.pathname}')`,
-            method: ctx.request.method,
-            version: version.version,
+        if (!CACHE.endpoints || CACHE.endpoints.length === 0) {
+            logger.fatal('Endpoints is empty');
+            return null;
+        }
+        const endpoint = CACHE.endpoints.find(endpoint => {
+            endpoint.pathRegex.lastIndex = 0;
+            return endpoint.method === method && endpoint.pathRegex && endpoint.pathRegex.test(pathname);
         });
+        if (endpoint) {
+            return endpoint.toObject();
+        }
+        return endpoint;
+
+    }
+
+    static async getRequest(ctx) {
+        logger.info(`Searching endpoint where redirect url ${ctx.request.url}
+            and method ${ctx.request.method}`);
+        const parsedUrl = url.parse(ctx.request.url);
+        let endpoint = await Dispatcher.getEndpoint(parsedUrl.pathname, ctx.request.method);
 
         if (!endpoint) {
             throw new EndpointNotFound(`${parsedUrl.pathname} not found`);
@@ -319,7 +358,7 @@ class Dispatcher {
                     for (const key in configRequest.body) { // eslint-disable-line no-restricted-syntax
                         if (key !== 'files') {
                             if (configRequest.body[key] !== null && configRequest.body[key] !== undefined) {
-                                if(typeof configRequest.body[key] === 'object') {
+                                if (typeof configRequest.body[key] === 'object') {
                                     body[key] = JSON.stringify(configRequest.body[key]);
                                 } else {
                                     body[key] = configRequest.body[key];
