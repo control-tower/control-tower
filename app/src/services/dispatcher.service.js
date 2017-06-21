@@ -242,7 +242,7 @@ class Dispatcher {
             name: appConstants.ENDPOINT_VERSION,
         });
         logger.debug('Version found ', version);
-        if (CACHE.version !== version.version) {
+        if (CACHE.version !== version.version || process.env.NODE_ENV === 'dev') {
             await Dispatcher.reloadEndpoints(version.version);
         }
         logger.debug('Searching endpoints');
