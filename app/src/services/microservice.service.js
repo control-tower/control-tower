@@ -208,11 +208,14 @@ class Microservice {
 
     static async register(info, ver) {
         let version = ver;
+        let versionExist = null;
         if (!version) {
+            versionExist = true;
             const versionFound = await VersionModel.findOne({
                 name: appConstants.ENDPOINT_VERSION,
             });
             version = versionFound.version;
+            versionExist = versionFound;
         }
         logger.info(`Registering new microservice with name ${info.name} and url ${info.url}`);
         logger.debug('Search if exist');
@@ -249,6 +252,10 @@ class Microservice {
             logger.info(`Updating state of microservice with name ${micro.name}`);
             micro.status = MICRO_STATUS_ACTIVE;
             await micro.save();
+            if (versionExist) {
+                versionExist.lastUpdated = new Date();
+                await versionExist.save();
+            }
             logger.info('Updated successfully');
         } else {
             logger.info(`Updated to error state microservice with name ${micro.name}`);

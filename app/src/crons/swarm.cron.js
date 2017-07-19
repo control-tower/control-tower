@@ -2,7 +2,7 @@ const CronJob = require('cron').CronJob;
 const Docker = require('dockerode');
 const logger = require('logger');
 const MicroserviceService = require('services/microservice.service');
-const ConsulService = require('services/consul.service');
+
 // TODO: Improve check equality
 const crypto = require('crypto');
 
@@ -19,7 +19,10 @@ async function tick() {
     try {
         logger.info('Executing tick in check swarm microservice');
         const swarmServices = await docker.listServices();
-        const services = swarmServices.map((service) => {
+        const services = [];
+        for (const service of swarmServices) {
+            const ser = await docker.getService(service.id);
+            logger.info('Ser', ser);
             const tags = service.Spec.Labels;
             const port = tags['controltower.port'];
             const active = tags['controltower.active'];
@@ -27,14 +30,15 @@ async function tick() {
                 if (!port) {
                     logger.error(`Service ${service.Spec.Name} does not contain port`);
                 }
-                return null;
+                break;
             }
-            return {
+            services.push({
                 active: true,
                 name: service.Spec.Name,
                 url: `http://${service.Spec.Name}:${port}`
-            };
-        }).filter((el) => el !== null);
+            });
+        }
+        
 
         logger.debug('Checking if exist changes');
         if (crypto.createHash('md5').update(JSON.stringify(services)).digest('hex') !== oldHashServices) {

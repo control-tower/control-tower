@@ -227,13 +227,13 @@ class Dispatcher {
         return validHeaders;
     }
 
-    static async reloadEndpoints(version) {
-        logger.fatal('Reloading endpoints');
+    static async reloadEndpoints(versionObj) {
+        logger.debug('Reloading endpoints');
         CACHE.endpoints = await EndpointModel.find({
-            version,
+            version: versionObj.version,
         });
-        CACHE.version = version;
-
+        logger.debug(CACHE.endpoints);
+        CACHE.version = versionObj;
     }
 
     static async getEndpoint(pathname, method) {
@@ -242,8 +242,10 @@ class Dispatcher {
             name: appConstants.ENDPOINT_VERSION,
         });
         logger.debug('Version found ', version);
-        if (CACHE.version !== version.version || process.env.NODE_ENV === 'dev') {
-            await Dispatcher.reloadEndpoints(version.version);
+        logger.debug('Version last', version.lastUpdated);
+        if (!CACHE.version || CACHE.version.lastUpdated !== version.lastUpdated) {
+            logger.debug('Reloading endponts');
+            await Dispatcher.reloadEndpoints(version);
         }
         logger.debug('Searching endpoints');
         if (!CACHE.endpoints || CACHE.endpoints.length === 0) {
