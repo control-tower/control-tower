@@ -198,6 +198,10 @@ async function authMicroservice(ctx, next) {
     await next();
 }
 
+router.get('/healthz', async (ctx) => {
+    ctx.body = 'OK';
+});
+
 router.get('/*', authMicroservice, DispatcherRouter.dispatch);
 router.post('/*', authMicroservice, DispatcherRouter.dispatch);
 router.delete('/*', authMicroservice, DispatcherRouter.dispatch);
