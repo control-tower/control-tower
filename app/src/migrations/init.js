@@ -6,6 +6,12 @@ const appConstants = require('app.constants');
 const logger = require('logger');
 
 module.exports = async function init() {
+    const version = await Version.find();
+    if (version && version.length > 0) {
+        logger.info('Database ready!!');
+        return;
+    }
+
     logger.info('Initializing migration');
     await Plugin.remove({});
     logger.info('Creating new plugins');

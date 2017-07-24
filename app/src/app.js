@@ -7,7 +7,7 @@ const loader = require('loader');
 const path = require('path');
 const convert = require('koa-convert');
 const bluebird = require('bluebird');
-const mongoUri = `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
+const mongoUri = process.env.CT_MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
 
 const koaBody = require('koa-body')({
     multipart: true,
@@ -30,12 +30,10 @@ async function onDbReady(err) {
         throw new Error(err);
     }
     // set promises in mongoose with bluebird
-    mongoose.Promise = bluebird;
-    logger.debug('migration', process.env.EXEC_MIGRATION);
-    if (process.env.EXEC_MIGRATION === 'true') {
-        logger.info('Executing migration...');
-        await require('migrations/init')(); // eslint-disable-line global-require
-    }
+    mongoose.Promise = Promise;
+
+    logger.info('Executing migration...');
+    await require('migrations/init')(); // eslint-disable-line global-require
 
     const app = new Koa();
 
