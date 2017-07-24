@@ -7,7 +7,7 @@ const config = require('config');
 
 function getGeneralConfig() {
     return {
-        mongoUri: process.env.CT_MONGO_URI | `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`,
+        mongoUri: process.env.CT_MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`,
         application: config.get('application'),
     };
 }
