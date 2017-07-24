@@ -1,0 +1,10 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gateway-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ct-static-ip
+spec:
+  backend:
+    serviceName: control-tower
+    servicePort: 80
