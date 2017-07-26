@@ -7,7 +7,8 @@
     "dev": "PORT=9000 NODE_PATH=app/src DEBUG=oauth-plugin,stadistics-plugin,redis-cache-plugin grunt --gruntfile app/Gruntfile.js | bunyan",
     "run": "PORT=9000 NODE_PATH=app/src DEBUG=oauth-plugin,stadistics-plugin,redis-cache-plugin node app/index.js | bunyan",
     "cron": "PORT=9000 NODE_PATH=app/src DEBUG=oauth-plugin,stadistics-plugin,redis-cache-plugin node app/index-crons.js | bunyan",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "NODE_PATH=app/src node app/index"
   },
   "keywords": [],
   "author": "",
