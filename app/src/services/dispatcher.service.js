@@ -232,8 +232,11 @@ class Dispatcher {
         CACHE.endpoints = await EndpointModel.find({
             version: versionObj.version,
         });
-        logger.debug(CACHE.endpoints);
-        CACHE.version = versionObj;
+        // logger.debug(CACHE.endpoints);
+        CACHE.version = {
+            version: versionObj.version,
+            lastUpdated: versionObj.lastUpdated
+        };
     }
 
     static async getEndpoint(pathname, method) {
@@ -243,7 +246,7 @@ class Dispatcher {
         });
         logger.debug('Version found ', version);
         logger.debug('Version last', version.lastUpdated);
-        if (!CACHE.version || CACHE.version.lastUpdated !== version.lastUpdated) {
+        if (!CACHE.version || !CACHE.version.lastUpdated || !version.lastUpdated || CACHE.version.lastUpdated.getTime() !== version.lastUpdated.getTime()) {
             logger.debug('Reloading endponts');
             await Dispatcher.reloadEndpoints(version);
         }

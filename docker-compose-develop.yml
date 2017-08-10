@@ -10,6 +10,7 @@ develop:
   links:
     - mongo
     - redis
+  restart: always
   volumes:
     - ./app:/opt/control-tower/app
     - /var/run/docker.sock:/var/run/docker.sock 

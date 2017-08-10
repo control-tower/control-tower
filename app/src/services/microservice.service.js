@@ -229,7 +229,16 @@ class Microservice {
                 throw new MicroserviceDuplicated(`Microservice with url ${info.url} exists`);
             } else {
                 logger.debug('Override activated, Removing old version of microservice');
-                await Microservice.remove(exist._id); // eslint-disable-line no-underscore-dangle
+                const finded = await MicroserviceModel.find({
+                    url: info.url,
+                    version,
+                });
+                if (finded) {
+                    for (let i = 0; i < finded.length; i++) {
+                        await Microservice.remove(finded[i]._id); // eslint-disable-line no-underscore-dangle
+                    }
+                }
+                
             }
         }
 
@@ -274,7 +283,10 @@ class Microservice {
         });
         const version = versionFound.version;
 
-        const errorMicroservices = await MicroserviceModel.find({ status: MICRO_STATUS_ERROR, version });
+        const errorMicroservices = await MicroserviceModel.find({
+            status: MICRO_STATUS_ERROR,
+            version
+        });
         if (errorMicroservices && errorMicroservices.length > 0) {
             for (let i = 0, length = errorMicroservices.length; i < length; i++) {
                 const micro = errorMicroservices[i];
