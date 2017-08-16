@@ -24,8 +24,7 @@
     "application": {
         "name": "APP_NAME",
         "logo": "APP_LOGO",
-        "principalColor": "APP_COLOR",
-        "sendNotifications": true
+        "principalColor": "APP_COLOR"
     },
     "instapush": {
         "token": "INSTAPUSH_TOKEN",
