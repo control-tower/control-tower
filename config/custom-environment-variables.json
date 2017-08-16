@@ -21,6 +21,12 @@
             "password": "CONSUL_BASICAUTH_PASSWORD"
         }
     },
+    "application": {
+        "name": "APP_NAME",
+        "logo": "APP_LOGO",
+        "principalColor": "APP_COLOR",
+        "sendNotifications": true
+    },
     "instapush": {
         "token": "INSTAPUSH_TOKEN",
         "id": "INSTAPUSH_ID",
