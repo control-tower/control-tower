@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:6.2
+FROM node:7.9-alpine
 MAINTAINER raul.requero@vizzuality.com
 
 ENV NAME control-tower

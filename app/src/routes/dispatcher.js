@@ -33,7 +33,8 @@ const ALLOWED_HEADERS = [
     'charset',
     'location',
     'content-disposition',
-    'content-type'
+    'content-type',
+    'content-encoding'
 ];
 
 function getHeadersFromResponse(response) {
@@ -44,6 +45,7 @@ function getHeadersFromResponse(response) {
             validHeaders[keys[i]] = response.headers[keys[i]];
         }
     }
+    logger.debug('Valid-headers', validHeaders);
     return validHeaders;
 }
 
@@ -95,6 +97,11 @@ class DispatcherRouter {
                         body = body.toString('utf8');
                     }
                     logger.error('error body', body);
+                    try {
+                        body = JSON.parse(result.body);
+                    } catch (e) {
+                        //
+                    }
                     if (body.errors && body.errors.length > 0) {
                         ctx.body = body;
                     } else {
@@ -190,6 +197,10 @@ async function authMicroservice(ctx, next) {
 
     await next();
 }
+
+router.get('/healthz', async (ctx) => {
+    ctx.body = 'OK';
+});
 
 router.get('/*', authMicroservice, DispatcherRouter.dispatch);
 router.post('/*', authMicroservice, DispatcherRouter.dispatch);

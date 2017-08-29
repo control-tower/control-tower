@@ -14,6 +14,7 @@ async function onDbReady(err) {
     mongoose.Promise = bluebird;
     // require('crons/live.cron'); // eslint-disable-line global-require
     // require('crons/consul.cron'); // eslint-disable-line global-require
+    // require('crons/swarm.cron'); // eslint-disable-line global-require
     //
     logger.info('Loading crons of the plugins');
     await loader.loadCronsPlugins();

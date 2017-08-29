@@ -7,6 +7,12 @@ const loader = require('loader');
 const logger = require('logger');
 
 module.exports = async function init() {
+    const version = await Version.find();
+    if (version && version.length > 0) {
+        logger.info('Database ready!!');
+        return;
+    }
+
     logger.info('Initializing migration');
     await Plugin.remove({});
     logger.info('Creating new plugins');
@@ -31,6 +37,12 @@ module.exports = async function init() {
         mainFile: 'plugins/cors',
         active: true,
     }).save();
+    await new Plugin({
+        name: 'formatter',
+        description: 'Formatter response',
+        mainFile: 'plugins/formatter',
+        active: true,
+    }).save();
 
     await new Plugin({
         name: 'stadistics',
@@ -46,7 +58,7 @@ module.exports = async function init() {
         active: true,
         config: {
             cookieDomain: process.env.COOKIE_DOMAIN,
-            sessionKey: process.env.SESSION_KEY,
+            sessionKey: process.env.SESSION_KEY || 'control-tower',
         },
     }).save();
 
@@ -115,7 +127,4 @@ module.exports = async function init() {
     await Endpoint.remove({});
     await Version.remove({});
     await new Version({ name: appConstants.ENDPOINT_VERSION, version: 1 }).save();
-
-    logger.info('Executing migrations of plugins');
-    await loader.migratePlugins();
 };

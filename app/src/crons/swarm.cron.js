@@ -1,12 +1,15 @@
 const CronJob = require('cron').CronJob;
+const Docker = require('dockerode');
 const logger = require('logger');
 const MicroserviceService = require('services/microservice.service');
-const ConsulService = require('services/consul.service');
+
 // TODO: Improve check equality
 const crypto = require('crypto');
 
 let oldHashServices = null;
-let running = false;
+
+const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+
 
 function sleep(ms = 0) {
     return new Promise(r => setTimeout(r, ms));
@@ -14,23 +17,35 @@ function sleep(ms = 0) {
 
 async function tick() {
     try {
-        logger.info('Executing tick in check consul microservice');
-        let services = await ConsulService.getServices();
-        services = services.map((service) => ({
-            active: true,
-            name: service.ServiceName,
-            url: `http://${service.ServiceAddress}:${service.ServicePort}`,
-            tags: service.ServiceTags,
-        }));
+        logger.info('Executing tick in check swarm microservice');
+        const swarmServices = await docker.listServices();
+        const services = [];
+        for (const service of swarmServices) {
+            const ser = await docker.getService(service.id);
+            logger.info('Ser', ser);
+            const tags = service.Spec.Labels;
+            const port = tags['controltower.port'];
+            const active = tags['controltower.active'];
+            if (!active || !port) {
+                if (!port) {
+                    logger.error(`Service ${service.Spec.Name} does not contain port`);
+                }
+                break;
+            }
+            services.push({
+                active: true,
+                name: service.Spec.Name,
+                url: `http://${service.Spec.Name}:${port}`
+            });
+        }
+        
+
         logger.debug('Checking if exist changes');
-        if (crypto.createHash('md5').update(JSON.stringify(services)).digest('hex') !== oldHashServices && !running) {
-            running = true;
+        if (crypto.createHash('md5').update(JSON.stringify(services)).digest('hex') !== oldHashServices) {
             logger.info('Sleeping to wait run microservices');
             oldHashServices = crypto.createHash('md5').update(JSON.stringify(services)).digest('hex');
-            // await sleep(30000);
             logger.info('Registering microservices');
             await MicroserviceService.registerPackMicroservices(services);
-            running = false;
         } else {
             logger.info('Not exist changes');
         }

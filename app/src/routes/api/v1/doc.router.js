@@ -4,7 +4,6 @@ const logger = require('logger');
 const config = require('config');
 const VersionModel = require('models/version.model');
 const appConstants = require('app.constants');
-const swaggerCT = require('doc/swagger-ct.json');
 
 const router = new Router({
     prefix: '/doc',
@@ -14,7 +13,7 @@ class DocRouter {
 
     static mergeDoc(services) {
         logger.debug('Merging doc');
-        const swagger = swaggerCT;
+        const swagger = require('doc/swagger-ct.json');
         try {
             swagger.host = config.get('server.publicUrl').replace('http://', '');
             if (services) {

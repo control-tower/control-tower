@@ -75,9 +75,13 @@ class Microservice {
                 await oldEndpoint.save();
             } else {
                 logger.debug('Exist redirect. Updating', oldRedirect);
-                oldRedirect.redirect[0].method = endpoint.redirect.method;
-                oldRedirect.redirect[0].path = endpoint.redirect.path;
-                oldRedirect.redirect[0].filters = Microservice.getFilters(endpoint);
+                for (let i = 0, length = oldRedirect.redirect.length; i < length; i++) {
+                    if (oldRedirect.redirect[i].url === endpoint.redirect.url) {
+                        oldRedirect.redirect[i].method = endpoint.redirect.method;
+                        oldRedirect.redirect[i].path = endpoint.redirect.path;
+                        oldRedirect.redirect[i].filters = Microservice.getFilters(endpoint);
+                    }
+                }
                 await oldRedirect.save();
             }
 
@@ -131,7 +135,7 @@ class Microservice {
                     const filters = [];
                     filters.push({
                         name: endpoint.paramProvider || 'dataset',
-                        path: endpoint.pathProvider || '/dataset/:dataset',
+                        path: endpoint.pathProvider || '/v1/dataset/:dataset',
                         method: 'GET',
                         params: {
                             dataset: 'dataset',
@@ -204,11 +208,14 @@ class Microservice {
 
     static async register(info, ver) {
         let version = ver;
+        let versionExist = null;
         if (!version) {
+            versionExist = true;
             const versionFound = await VersionModel.findOne({
                 name: appConstants.ENDPOINT_VERSION,
             });
             version = versionFound.version;
+            versionExist = versionFound;
         }
         logger.info(`Registering new microservice with name ${info.name} and url ${info.url}`);
         logger.debug('Search if exist');
@@ -222,7 +229,16 @@ class Microservice {
                 throw new MicroserviceDuplicated(`Microservice with url ${info.url} exists`);
             } else {
                 logger.debug('Override activated, Removing old version of microservice');
-                await Microservice.remove(exist._id); // eslint-disable-line no-underscore-dangle
+                const finded = await MicroserviceModel.find({
+                    url: info.url,
+                    version,
+                });
+                if (finded) {
+                    for (let i = 0; i < finded.length; i++) {
+                        await Microservice.remove(finded[i]._id); // eslint-disable-line no-underscore-dangle
+                    }
+                }
+                
             }
         }
 
@@ -245,6 +261,10 @@ class Microservice {
             logger.info(`Updating state of microservice with name ${micro.name}`);
             micro.status = MICRO_STATUS_ACTIVE;
             await micro.save();
+            if (versionExist) {
+                versionExist.lastUpdated = new Date();
+                await versionExist.save();
+            }
             logger.info('Updated successfully');
         } else {
             logger.info(`Updated to error state microservice with name ${micro.name}`);
@@ -263,7 +283,10 @@ class Microservice {
         });
         const version = versionFound.version;
 
-        const errorMicroservices = await MicroserviceModel.find({ status: MICRO_STATUS_ERROR, version });
+        const errorMicroservices = await MicroserviceModel.find({
+            status: MICRO_STATUS_ERROR,
+            version
+        });
         if (errorMicroservices && errorMicroservices.length > 0) {
             for (let i = 0, length = errorMicroservices.length; i < length; i++) {
                 const micro = errorMicroservices[i];

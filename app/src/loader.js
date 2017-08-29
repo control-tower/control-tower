@@ -7,7 +7,7 @@ const config = require('config');
 
 function getGeneralConfig() {
     return {
-        mongoUri: `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`,
+        mongoUri: process.env.CT_MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`,
         application: config.get('application'),
     };
 }
@@ -112,7 +112,11 @@ function loadAPI(app, path, pathApi) {
 
 function loadRoutes(app) {
     logger.debug('Loading routes...');
-    loadAPI(app, routersPath);
+    try {
+        loadAPI(app, routersPath);
+    } catch(err) {
+        logger.error(err);
+    }
     logger.debug('Loaded routes correctly!');
 }
 
