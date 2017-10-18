@@ -34,7 +34,9 @@ const ALLOWED_HEADERS = [
     'location',
     'content-disposition',
     'content-type',
-    'content-encoding'
+    'content-encoding',
+    'Surrogate-Key',
+    'surrogate-key'
 ];
 
 function getHeadersFromResponse(response) {
