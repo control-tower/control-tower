@@ -47,7 +47,7 @@
     "bunyan-syslog-udp": "^0.1.0",
     "config": "^1.21.0",
     "cron": "^1.1.0",
-    "ct-oauth-plugin": "1.6.4",
+    "ct-oauth-plugin": "1.6.5",
     "ct-redis-cache-plugin": "1.2.3",
     "ct-stadistics-plugin": "1.2.0",
     "dockerode": "^2.4.3",
