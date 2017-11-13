@@ -82,11 +82,11 @@ module.exports = function (grunt) {
             },
             e2eTest: {
                 files: [
-                    'app/test/unit/**/*.spec.js',
+                    'app/test/e2e/**/*.spec.js',
                 ],
                 tasks: ['mochaTest:e2e'],
                 options: {
-                    spawn: false
+                    spawn: true
                 }
             },
 
@@ -98,7 +98,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('e2eTest', ['mochaTest:e2e']);
 
-    grunt.registerTask('test', ['e2eTest']);
+    grunt.registerTask('test', ['e2eTest', 'watch:e2eTest']);
 
     grunt.registerTask('serve', ['express:dev', 'watch']);
     grunt.registerTask('crons', ['express:cron', 'watch']);

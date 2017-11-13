@@ -1,62 +1,12 @@
-const ROLES = {
-    USER: {
-        id: '1a10d7c6e0a37126611fd7a7',
-        role: 'USER',
-        provider: 'local',
-        email: 'user@control-tower.org',
-        extraUserData: {
-            apps: [
-                'rw',
-                'gfw',
-                'gfw-climate',
-                'prep',
-                'aqueduct',
-                'forest-atlas',
-                'data4sdgs'
-            ]
-        }
-    },
-    MANAGER: {
-        id: '1a10d7c6e0a37126611fd7a7',
-        role: 'MANAGER',
-        provider: 'local',
-        email: 'user@control-tower.org',
-        extraUserData: {
-            apps: [
-                'rw',
-                'gfw',
-                'gfw-climate',
-                'prep',
-                'aqueduct',
-                'forest-atlas',
-                'data4sdgs'
-            ]
-        }
-    },
-    ADMIN: {
-        id: '1a10d7c6e0a37126611fd7a7',
-        role: 'ADMIN',
-        provider: 'local',
-        email: 'user@control-tower.org',
-        extraUserData: {
-            apps: [
-                'rw',
-                'gfw',
-                'gfw-climate',
-                'prep',
-                'aqueduct',
-                'forest-atlas',
-                'data4sdgs'
-            ]
-        }
-    }
+const TOKENS = {
+    USER: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhMTBkN2M2ZTBhMzcxMjY2MTFmZDdhNyIsInJvbGUiOiJVU0VSIiwicHJvdmlkZXIiOiJsb2NhbCIsImVtYWlsIjoidXNlckBjb250cm9sLXRvd2VyLm9yZyIsImV4dHJhVXNlckRhdGEiOnsiYXBwcyI6WyJydyIsImdmdyIsImdmdy1jbGltYXRlIiwicHJlcCIsImFxdWVkdWN0IiwiZm9yZXN0LWF0bGFzIiwiZGF0YTRzZGdzIl19fQ.eePyj9grA2akg2vKqmLz5Gg8hd2Afq64ZaeGLb-aLC0',
+    MANAGER: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhMTBkN2M2ZTBhMzcxMjY2MTFmZDdhNyIsInJvbGUiOiJNQU5BR0VSIiwicHJvdmlkZXIiOiJsb2NhbCIsImVtYWlsIjoibWFuYWdlckBjb250cm9sLXRvd2VyLm9yZyIsImV4dHJhVXNlckRhdGEiOnsiYXBwcyI6WyJydyIsImdmdyIsImdmdy1jbGltYXRlIiwicHJlcCIsImFxdWVkdWN0IiwiZm9yZXN0LWF0bGFzIiwiZGF0YTRzZGdzIl19fQ.ONb6dBz-pYxmXP3ECmRT7zmJHy8Dzn1GYyE6ndOR1Uw',
+    ADMIN: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhMTBkN2M2ZTBhMzcxMjY2MTFmZDdhNyIsInJvbGUiOiJBRE1JTiIsInByb3ZpZGVyIjoibG9jYWwiLCJlbWFpbCI6ImFkbWluQGNvbnRyb2wtdG93ZXIub3JnIiwiZXh0cmFVc2VyRGF0YSI6eyJhcHBzIjpbInJ3IiwiZ2Z3IiwiZ2Z3LWNsaW1hdGUiLCJwcmVwIiwiYXF1ZWR1Y3QiLCJmb3Jlc3QtYXRsYXMiLCJkYXRhNHNkZ3MiXX19.FglwGCDjeh5c3bdmV0GA6QiMd-I1AdbdHCLQQGUPRxw'
 };
 
 const BASE_URL = 'http://localhost:9000/api/v1';
-const MICROSERVICE_URL = 'http://mymachine:8000';
 
 module.exports = {
-    ROLES,
-    BASE_URL,
-    MICROSERVICE_URL
+    TOKENS,
+    BASE_URL
 };

@@ -37,7 +37,7 @@ async function init() {
             logger.info('Executing migration...');
             try {
                 await require('migrations/init')(); // eslint-disable-line global-require
-            }catch(Err){
+            } catch (Err) {
                 logger.error(Err);
             }
 
@@ -51,9 +51,9 @@ async function init() {
             loader.loadRoutes(app);
             app.use(require('routes/dispatcher.js').middleware()); // eslint-disable-line global-require
 
-            app.listen(process.env.PORT);
+            const server = app.listen(process.env.PORT);
             logger.info('Server started in ', process.env.PORT);
-            resolve();
+            resolve({ app, server });
         }
 
         mongoose.connect(mongoUri, onDbReady);
