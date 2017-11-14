@@ -12,6 +12,7 @@ globals:
   it: true
   before: true
   after: true
+  beforeEach: true
 rules:
   max-len: [1, 120, 2, {"ignoreUrls":true}]
   curly: [2, "multi-line"]

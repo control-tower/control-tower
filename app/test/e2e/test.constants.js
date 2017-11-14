@@ -5,8 +5,10 @@ const TOKENS = {
 };
 
 const BASE_URL = 'http://localhost:9000/api/v1';
+const CT_URL = 'http://localhost:9000';
 
 module.exports = {
     TOKENS,
-    BASE_URL
+    BASE_URL,
+    CT_URL
 };

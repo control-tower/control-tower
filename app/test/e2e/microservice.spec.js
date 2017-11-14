@@ -1,7 +1,7 @@
 const logger = require('logger');
 const nock = require('nock');
 const request = require('superagent').agent();
-const { BASE_URL, TOKENS } = require('./test.constants');
+const { BASE_URL, TOKENS, CT_URL } = require('./test.constants');
 require('should');
 
 async function deleteCurrentMicroservices() {
@@ -35,6 +35,11 @@ describe('E2E tests', () => {
         url: 'http://mymachine:8000',
         active: true
     };
+    const dataset = {
+        name: `dataset`,
+        url: 'http://mymachine:3000',
+        active: true
+    };
     const adapterOne = {
         name: `adapter-one`,
         url: 'http://mymachine:8001',
@@ -58,11 +63,14 @@ describe('E2E tests', () => {
         })
         .catch(err => {
             logger.error(err);
+            done();
         });
 
     });
 
-    beforeEach(function () {
+    beforeEach(async function () {
+        // Delete BeforeEach
+        await deleteCurrentMicroservices();
         nock('http://mymachine:8000')
             .get((uri) => {
                 logger.info('Uri', uri);
@@ -82,6 +90,48 @@ describe('E2E tests', () => {
                 }]
             });
 
+        nock('http://mymachine:3000')
+            .get((uri) => {
+                logger.info('Uri', uri);
+                return uri.startsWith('/info');
+            })
+            .reply(200, {
+                swagger: {},
+                name: 'dataset',
+                tags: ['test'],
+                endpoints: [{
+                    path: '/v1/dataset/:dataset',
+                    method: 'GET',
+                    binary: true,
+                    redirect: {
+                        method: 'GET',
+                        path: '/api/v1/dataset/:dataset'
+                    }
+                }]
+            })
+            .get('/api/v1/dataset/1111')
+            .query(true)
+            .reply(200, {
+                status: 200,
+                detail: 'OK',
+                data: {
+                    attributes: {
+                        provider: 'cartodb'
+                    }
+                }
+            })
+            .get('/api/v1/dataset/2222')
+            .query(true)
+            .reply(200, {
+                status: 200,
+                detail: 'OK',
+                data: {
+                    attributes: {
+                        provider: 'featureservice'
+                    }
+                }
+            });
+
         nock('http://mymachine:8001')
             .get((uri) => {
                 logger.info('Uri', uri);
@@ -92,16 +142,16 @@ describe('E2E tests', () => {
                 name: 'adapter-one',
                 tags: ['test'],
                 endpoints: [{
-                    path: '/v1/query',
+                    path: '/v1/query/:dataset',
                     method: 'GET',
                     binary: true,
                     redirect: {
                         method: 'GET',
-                        path: '/api/v1/carto/query'
+                        path: '/api/v1/carto/query/:dataset'
                     },
                     filters: [{
                         name: 'dataset',
-                        path: '/v1/dataset/',
+                        path: '/v1/dataset/:dataset',
                         method: 'GET',
                         params: {
                             dataset: 'dataset'
@@ -115,6 +165,12 @@ describe('E2E tests', () => {
                         }
                     }]
                 }]
+            })
+            .get('/api/v1/carto/query/1111')
+            .query(true)
+            .reply(200, {
+                status: 200,
+                query: 1000
             });
 
         nock('http://mymachine:8002')
@@ -127,16 +183,16 @@ describe('E2E tests', () => {
                 name: 'adapter-two',
                 tags: ['test'],
                 endpoints: [{
-                    path: '/v1/query',
+                    path: '/v1/query/:dataset',
                     method: 'GET',
                     binary: true,
                     redirect: {
                         method: 'GET',
-                        path: '/api/v1/arcgis/query'
+                        path: '/api/v1/arcgis/query/:dataset'
                     },
                     filters: [{
                         name: 'dataset',
-                        path: '/v1/dataset/',
+                        path: '/v1/dataset/:dataset',
                         method: 'GET',
                         params: {
                             dataset: 'dataset'
@@ -150,8 +206,13 @@ describe('E2E tests', () => {
                         }
                     }]
                 }]
+            })
+            .get('/api/v1/arcgis/query/2222')
+            .query(true)
+            .reply(200, {
+                status: 200,
+                query: 2000
             });
-            // @TODO mock /api/v1/arcgis/query /api/v1/carto/query y /v1/dataset
     });
 
     /* Not registered microservices */
@@ -169,7 +230,6 @@ describe('E2E tests', () => {
     });
 
     /* Register a microservice */
-    let microserviceId;
     it('Register a microservice', async() => {
         let response;
         try {
@@ -178,7 +238,6 @@ describe('E2E tests', () => {
             logger.error(e);
         }
         response.status.should.equal(200);
-        microserviceId = response.body._id;
     });
 
     /* Check the status */
@@ -202,34 +261,20 @@ describe('E2E tests', () => {
             logger.error(e);
         }
         response.status.should.equal(200);
-        response.body.should.be.an.instanceOf(Array).and.have.lengthOf(1);
     });
 
     /* Check the status */
     it('Delete microservice', async() => {
+        const createdMicroservice = await request.post(`${BASE_URL}/microservice`).send(microservice);
         let response;
         try {
-            response = await request.delete(`${BASE_URL}/microservice/${microserviceId}`)
+            response = await request.delete(`${BASE_URL}/microservice/${createdMicroservice.body._id}`)
             .send()
             .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
         } catch (e) {
             logger.error(e);
         }
         response.status.should.equal(200);
-    });
-
-    /* Not registered microservices */
-    it('Not registered microservices', async() => {
-        let response;
-        try {
-            response = await request.get(`${BASE_URL}/microservice`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-        response.body.should.be.an.instanceOf(Array).and.have.lengthOf(0);
     });
 
     /* Get empty endpoints */
@@ -276,19 +321,23 @@ describe('E2E tests', () => {
     });
 
     /* Testing redirects and filters */
-    it('Get endpoints', async() => {
-        /* Register microservice again */
+    it('Redirects and filters', async() => {
+        /* Register the microservice again */
+        await request.post(`${BASE_URL}/microservice`).send(dataset);
         await request.post(`${BASE_URL}/microservice`).send(adapterOne);
         await request.post(`${BASE_URL}/microservice`).send(adapterTwo);
-        let response;
+        let queryOne;
+        let queryTwo;
         try {
-            response = await request.get(`${BASE_URL}/endpoint`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
+            queryOne = await request.get(`${CT_URL}/v1/query/1111`);
+            queryTwo = await request.get(`${CT_URL}/v1/query/2222`);
         } catch (e) {
             logger.error(e);
         }
-        response.status.should.equal(200);
+        queryOne.status.should.equal(200);
+        queryOne.body.query.should.equal(1000);
+        queryTwo.status.should.equal(200);
+        queryTwo.body.query.should.equal(2000);
     });
 
     after(() => {

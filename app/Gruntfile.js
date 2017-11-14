@@ -98,7 +98,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('e2eTest', ['mochaTest:e2e']);
 
-    grunt.registerTask('test', ['e2eTest', 'watch:e2eTest']);
+    grunt.registerTask('test', ['e2eTest']);
 
     grunt.registerTask('serve', ['express:dev', 'watch']);
     grunt.registerTask('crons', ['express:cron', 'watch']);
