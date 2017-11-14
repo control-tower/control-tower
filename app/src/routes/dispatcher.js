@@ -53,6 +53,20 @@ function getHeadersFromResponse(response) {
 
 class DispatcherRouter {
 
+    static getLoggedUser(ctx) {
+        if (ctx.state) {
+            if (ctx.state.user) {
+                return ctx.state.user;
+            } else if (ctx.state.microservice) {
+                return ctx.state.microservice;
+            }
+        }
+        if (ctx.req && ctx.req.user) {
+            return ctx.req.user;
+        }
+        return null;
+    }
+
     static getInfoRedirect(ctx, result) {
         return {
             source: {
@@ -64,6 +78,7 @@ class DispatcherRouter {
                 method: result.configRequest.method,
                 endpoint: result.endpoint,
             },
+            user: DispatcherRouter.getLoggedUser(ctx)
         };
     }
 

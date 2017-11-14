@@ -23,7 +23,6 @@ const koaBody = require('koa-body')({
     },
 });
 
-
 async function init() {
     return new Promise((resolve, reject) => {
         async function onDbReady(err) {
@@ -42,10 +41,9 @@ async function init() {
             }
 
             const app = new Koa();
-
+            
             app.use(convert(koaBody));
             await loader.loadPlugins(app);
-
             app.use(koaLogger());
 
             loader.loadRoutes(app);
