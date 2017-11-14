@@ -28,6 +28,14 @@ module.exports = function (grunt) {
                     output: 'started',
                 },
             },
+            test: {
+                options: {
+                    script: 'app/index.js',
+                    node_env: 'test',
+                    port: 5000,
+                    output: 'started'
+                }
+            }
         },
 
         mochaTest: {
@@ -74,11 +82,11 @@ module.exports = function (grunt) {
             },
             e2eTest: {
                 files: [
-                    'app/test/unit/**/*.spec.js',
+                    'app/test/e2e/**/*.spec.js',
                 ],
                 tasks: ['mochaTest:e2e'],
                 options: {
-                    spawn: false
+                    spawn: true
                 }
             },
 
@@ -88,9 +96,9 @@ module.exports = function (grunt) {
 
     grunt.registerTask('unitTest', ['mochaTest:unit']);
 
-    grunt.registerTask('e2eTest', ['express:dev', 'mochaTest:e2e']);
+    grunt.registerTask('e2eTest', ['mochaTest:e2e']);
 
-    grunt.registerTask('test', ['unitTest']);
+    grunt.registerTask('test', ['e2eTest']);
 
     grunt.registerTask('serve', ['express:dev', 'watch']);
     grunt.registerTask('crons', ['express:cron', 'watch']);

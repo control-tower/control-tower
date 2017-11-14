@@ -1,0 +1,15 @@
+test:
+  extends:
+    file: base.yml
+    service: base
+  env_file:
+    - dev.env
+  command: test
+  links:
+    - mongo
+  volumes:
+    - ./app:/opt/control-tower/app
+mongo:
+  extends:
+    file: base.yml
+    service: mongo

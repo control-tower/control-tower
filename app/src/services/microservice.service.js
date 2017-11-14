@@ -123,9 +123,9 @@ class Microservice {
         logger.debug('Generating url info to microservice with url', urlInfo);
         const queryParams = `token=${token}&url=${internalUrl}`;
         if (urlInfo.indexOf('?') >= 0) {
-            return `${urlInfo}&${queryParams}`;
+            return `${urlInfo}`;
         }
-        return `${urlInfo}?${queryParams}`;
+        return `${urlInfo}`;
     }
 
     static formatFilters(endpoint) {
@@ -180,8 +180,9 @@ class Microservice {
         let result = null;
         try {
             result = await request({
-                uri: urlInfo,
+                url: urlInfo,
                 json: true,
+                method: 'GET'
             });
             logger.debug('Updating microservice');
             result = Microservice.transformToNewVersion(result);

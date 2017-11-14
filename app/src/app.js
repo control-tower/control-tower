@@ -24,29 +24,40 @@ const koaBody = require('koa-body')({
 });
 
 
-async function onDbReady(err) {
-    if (err) {
-        logger.error(err);
-        throw new Error(err);
-    }
-    // set promises in mongoose with bluebird
-    mongoose.Promise = Promise;
+async function init() {
+    return new Promise((resolve, reject) => {
+        async function onDbReady(err) {
+            if (err) {
+                logger.error(err);
+                reject(new Error(err));
+            }
+            // set promises in mongoose with bluebird
+            mongoose.Promise = Promise;
 
-    logger.info('Executing migration...');
-    await require('migrations/init')(); // eslint-disable-line global-require
+            logger.info('Executing migration...');
+            try {
+                await require('migrations/init')(); // eslint-disable-line global-require
+            } catch (Err) {
+                logger.error(Err);
+            }
 
-    const app = new Koa();
+            const app = new Koa();
 
-    app.use(convert(koaBody));
-    await loader.loadPlugins(app);
+            app.use(convert(koaBody));
+            await loader.loadPlugins(app);
 
-    app.use(koaLogger());
+            app.use(koaLogger());
 
-    loader.loadRoutes(app);
-    app.use(require('routes/dispatcher.js').middleware()); // eslint-disable-line global-require
+            loader.loadRoutes(app);
+            app.use(require('routes/dispatcher.js').middleware()); // eslint-disable-line global-require
 
-    app.listen(process.env.PORT);
-    logger.info('Server started in ', process.env.PORT);
+            const server = app.listen(process.env.PORT);
+            logger.info('Server started in ', process.env.PORT);
+            resolve({ app, server });
+        }
+
+        mongoose.connect(mongoUri, onDbReady);
+    });
 }
 
-mongoose.connect(mongoUri, onDbReady);
+module.exports = init;
