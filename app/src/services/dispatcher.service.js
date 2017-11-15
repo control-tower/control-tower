@@ -276,7 +276,7 @@ class Dispatcher {
             throw new EndpointNotFound(`${parsedUrl.pathname} not found`);
         } else {
             logger.debug('Endpoint found');
-            logger.debug('Checking if is necesary authentication', ctx.state.user);
+            logger.debug('Checking if is necesary authentication');
             if (endpoint.authenticated && !Dispatcher.getLoggedUser(ctx)) {
                 logger.info('Is necesary authentication but the request is not authenticated');
                 throw new NotAuthenticated();
