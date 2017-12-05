@@ -102,7 +102,7 @@ class DispatcherRouter {
                     ctx.response.status = response.statusCode;
                     ctx.set(getHeadersFromResponse(response));
                 });
-                ctx.body = req.on('error', ctx.onerror).pipe(passThrough());
+                ctx.body = req.on('error', ctx.onerror.bind(ctx)).pipe(passThrough());
             } else {
                 const result = await requestPromise(configRequest);
                 // set headers
