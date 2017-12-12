@@ -67,22 +67,46 @@ module.exports = async function init() {
         mainFile: 'ct-oauth-plugin',
         active: true,
         config: {
-            twitter: {
-                active: false,
-                consumerKey: process.env.TWITTER_CONSUMER_KEY,
-                consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
-            },
-            google: {
-                active: false,
-                clientID: process.env.GOOGLE_CLIENT_ID,
-                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                scope: ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/userinfo.email'],
-            },
-            facebook: {
-                active: false,
-                clientID: process.env.FACEBOOK_CLIENT_ID,
-                clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-                scope: ['email'],
+            defaultApp: 'gfw',
+            thirdParty: {
+                gfw: {
+                    twitter: {
+                        active: false,
+                        consumerKey: process.env.GFW_TWITTER_CONSUMER_KEY,
+                        consumerSecret: process.env.GFW_TWITTER_CONSUMER_SECRET,
+                    },
+                    google: {
+                        active: true,
+                        clientID: process.env.GFW_GOOGLE_CLIENT_ID,
+                        clientSecret: process.env.GFW_GOOGLE_CLIENT_SECRET,
+                        scope: ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/userinfo.email'],
+                    },
+                    facebook: {
+                        active: true,
+                        clientID: process.env.GFW_FACEBOOK_CLIENT_ID,
+                        clientSecret: process.env.GFW_FACEBOOK_CLIENT_SECRET,
+                        scope: ['email'],
+                    },
+                },
+                rw: {
+                    twitter: {
+                        active: false,
+                        consumerKey: process.env.RW_TWITTER_CONSUMER_KEY,
+                        consumerSecret: process.env.RW_TWITTER_CONSUMER_SECRET,
+                    },
+                    google: {
+                        active: true,
+                        clientID: process.env.RW_GOOGLE_CLIENT_ID,
+                        clientSecret: process.env.RW_GOOGLE_CLIENT_SECRET,
+                        scope: ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/userinfo.email'],
+                    },
+                    facebook: {
+                        active: true,
+                        clientID: process.env.RW_FACEBOOK_CLIENT_ID,
+                        clientSecret: process.env.RW_FACEBOOK_CLIENT_SECRET,
+                        scope: ['email'],
+                    },
+                }
             },
             local: {
                 active: true,
