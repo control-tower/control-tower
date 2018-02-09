@@ -37,6 +37,12 @@ module.exports = async function init() {
         active: true,
     }).save();
     await new Plugin({
+        name: 'invalidateCacheEndpoint',
+        description: 'Invalidate cache endpoints in varnish',
+        mainFile: 'plugins/invalidate-cache',
+        active: false,
+    }).save();
+    await new Plugin({
         name: 'formatter',
         description: 'Formatter response',
         mainFile: 'plugins/formatter',
@@ -69,7 +75,6 @@ module.exports = async function init() {
         config: {
             defaultApp: 'gfw',
             thirdParty: {
-                
                 rw: {
                     twitter: {
                         active: false,
@@ -77,15 +82,53 @@ module.exports = async function init() {
                         consumerSecret: process.env.RW_TWITTER_CONSUMER_SECRET,
                     },
                     google: {
-                        active: true,
+                        active: false,
                         clientID: process.env.RW_GOOGLE_CLIENT_ID,
                         clientSecret: process.env.RW_GOOGLE_CLIENT_SECRET,
                         scope: ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/userinfo.email'],
                     },
                     facebook: {
-                        active: true,
+                        active: false,
                         clientID: process.env.RW_FACEBOOK_CLIENT_ID,
                         clientSecret: process.env.RW_FACEBOOK_CLIENT_SECRET,
+                        scope: ['email'],
+                    },
+                },
+                prep: {
+                    twitter: {
+                        active: false,
+                        consumerKey: process.env.PREP_TWITTER_CONSUMER_KEY,
+                        consumerSecret: process.env.PREP_TWITTER_CONSUMER_SECRET,
+                    },
+                    google: {
+                        active: false,
+                        clientID: process.env.PREP_GOOGLE_CLIENT_ID,
+                        clientSecret: process.env.PREP_GOOGLE_CLIENT_SECRET,
+                        scope: ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/userinfo.email'],
+                    },
+                    facebook: {
+                        active: false,
+                        clientID: process.env.PREP_FACEBOOK_CLIENT_ID,
+                        clientSecret: process.env.PREP_FACEBOOK_CLIENT_SECRET,
+                        scope: ['email'],
+                    },
+                },
+                gfw: {
+                    twitter: {
+                        active: false,
+                        consumerKey: process.env.GFW_TWITTER_CONSUMER_KEY,
+                        consumerSecret: process.env.GFW_TWITTER_CONSUMER_SECRET,
+                    },
+                    google: {
+                        active: false,
+                        clientID: process.env.GFW_GOOGLE_CLIENT_ID,
+                        clientSecret: process.env.GFW_GOOGLE_CLIENT_SECRET,
+                        scope: ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/userinfo.email'],
+                    },
+                    facebook: {
+                        active: false,
+                        clientID: process.env.GFW_FACEBOOK_CLIENT_ID,
+                        clientSecret: process.env.GFW_FACEBOOK_CLIENT_SECRET,
                         scope: ['email'],
                     },
                 }
@@ -122,6 +165,26 @@ module.exports = async function init() {
                 port: process.env.REDIS_PORT_6379_TCP_PORT,
             },
             timeCache: 60 * 60 * 24,
+        },
+    }).save();
+    await new Plugin({
+        name: 'appKey',
+        description: 'Application key authorization',
+        mainFile: 'plugins/app-key',
+        active: true,
+        config: {
+            headerName: 'app_key',
+            secret: process.env.JWT_SECRET
+        },
+    }).save();
+    await new Plugin({
+        name: 'fastlyCache',
+        description: 'Fastly Cache request',
+        mainFile: 'plugins/fastly-cache',
+        active: false,
+        config: {
+            key: process.env.FASTLY_APIKEY,
+            serviceId: process.env.FASTLY_SERVICEID,
         },
     }).save();
 

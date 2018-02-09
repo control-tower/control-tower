@@ -8,6 +8,8 @@ const Microservice = new Schema({
     pathInfo: { type: String, required: true, default: '/info' },
     pathLive: { type: String, required: true, default: '/ping' },
     status: { type: String, default: 'pending' },
+    cache: [{ type: String, required: false }],
+    uncache: [{ type: String, required: false }],
     infoStatus: {
         _id: false,
         lastCheck: { type: Date, required: false },

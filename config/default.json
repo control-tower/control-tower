@@ -30,7 +30,7 @@
         "name": "Control Tower",
         "logo": "http://i.imgur.com/BiEx7R3.png",
         "principalColor": "#5d73f9",
-        "sendNotifications": true
+        "sendNotifications": false
     },
     "consul":{
         "url": "",

@@ -1,4 +1,4 @@
-FROM node:7.9-alpine
+FROM node:9.4-alpine
 MAINTAINER raul.requero@vizzuality.com
 
 ENV NAME control-tower

@@ -2,8 +2,6 @@ develop:
   extends:
     file: base.yml
     service: base
-  ports:
-    - "35729:35729"
   env_file:
     - dev.env
   command: develop
@@ -15,11 +13,19 @@ develop:
     - ./app:/opt/control-tower/app
     - /var/run/docker.sock:/var/run/docker.sock 
 
+# varnish:
+#   extends:
+#     file: base.yml
+#     service: varnish
+#   links:
+#     - develop
+#   volumes:
+#     - ./varnish/default.vcl:/etc/varnish/default.vcl
+
 mongo:
   extends:
     file: base.yml
     service: mongo
-
 redis:
   extends:
     file: base.yml

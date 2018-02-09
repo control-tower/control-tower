@@ -5,6 +5,7 @@ const VersionModel = require('models/version.model');
 const url = require('url');
 const EndpointNotFound = require('errors/endpointNotFound');
 const NotAuthenticated = require('errors/notAuthenticated');
+const NotApplicationKey = require('errors/notApplicationKey');
 const FilterError = require('errors/filterError');
 const pathToRegexp = require('path-to-regexp');
 const requestPromise = require('request-promise');
@@ -281,6 +282,11 @@ class Dispatcher {
                 logger.info('Is necesary authentication but the request is not authenticated');
                 throw new NotAuthenticated();
             }
+            
+            if (endpoint.applicationRequired && !ctx.state.appKey) {
+                logger.info('Is necesary application-key but the request does not contain it');
+                throw new NotApplicationKey('Required app_key');
+            }
             let redirectEndpoint = null;
             endpoint = await Dispatcher.checkFilters(parsedUrl.pathname, endpoint);
             if (endpoint && endpoint.redirect.length === 0) {
@@ -309,9 +315,13 @@ class Dispatcher {
                 simple: false,
                 resolveWithFullResponse: true,
                 binary: endpoint.binary,
+                headers: {}
             };
             if (ctx.request.query) {
                 logger.debug('Adding query params');
+                if (ctx.request.query.app_key) {
+                    delete ctx.request.query.app_key;
+                }
                 configRequest.qs = ctx.request.query;
             }
 
@@ -327,9 +337,7 @@ class Dispatcher {
                 }
             }
             logger.debug('Adding logged user if it is logged');
-            redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
-                loggedUser: Dispatcher.getLoggedUser(ctx),
-            });
+            
             if (redirectEndpoint.data) {
                 logger.debug('Adding data');
                 if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
@@ -386,7 +394,8 @@ class Dispatcher {
                 logger.debug('Adding headers');
                 configRequest.headers = Dispatcher.getHeadersFromRequest(ctx.request.headers);
             }
-
+            configRequest.headers.app_key = JSON.stringify(ctx.state.appKey);
+            configRequest.headers.user_key = Dispatcher.getLoggedUser(ctx);
 
             logger.debug('Checking if is json or formdata request');
             if (configRequest.multipart) {

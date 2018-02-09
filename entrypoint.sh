@@ -10,6 +10,10 @@ case "$1" in
         echo "Running Start Dev"
         exec node app/index
         ;;
+    startCron)
+        echo "Running Start Dev"
+        exec node app/index-crons
+        ;;
     test)
         echo "Running Test"
         exec grunt --gruntfile app/Gruntfile.js test

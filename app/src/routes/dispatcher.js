@@ -6,6 +6,7 @@ const JWT = Promise.promisifyAll(require('jsonwebtoken'));
 const DispatcherService = require('services/dispatcher.service.js');
 const EndpointNotFound = require('errors/endpointNotFound');
 const NotAuthenticated = require('errors/notAuthenticated');
+const NotApplicationKey = require('errors/notApplicationKey');
 const FilterError = require('errors/filterError');
 const fs = require('fs');
 const router = new Router();
@@ -36,7 +37,8 @@ const ALLOWED_HEADERS = [
     'content-type',
     'content-encoding',
     'Surrogate-Key',
-    'surrogate-key'
+    'surrogate-key',
+    'APP_KEY'
 ];
 
 function getHeadersFromResponse(response) {
@@ -158,6 +160,11 @@ class DispatcherRouter {
             }
             if (err instanceof NotAuthenticated) {
                 logger.error('Not authorized');
+                ctx.throw(401, err.message);
+                return;
+            }
+            if (err instanceof NotApplicationKey) {
+                logger.error('Not application key');
                 ctx.throw(401, err.message);
                 return;
             }

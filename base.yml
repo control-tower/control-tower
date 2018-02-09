@@ -19,3 +19,10 @@ redis:
   ports:
     - "6379:6379"
   restart: always
+
+varnish:
+  image: zazukoians/varnish
+  container_name: control-tower-varnish
+  ports:
+    - "80:80"
+  restart: always

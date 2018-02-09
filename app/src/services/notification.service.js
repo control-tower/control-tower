@@ -16,7 +16,7 @@ class Notification {
         });
         this.notify = (opts) => new Promise((resolve, reject) => {
             instapush.notify(opts, (err, response) => {
-                if (response.error) {
+                if (err) {
                     reject(response);
                     return;
                 }
