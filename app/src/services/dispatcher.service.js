@@ -337,6 +337,9 @@ class Dispatcher {
                 }
             }
             logger.debug('Adding logged user if it is logged');
+            redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
+                loggedUser: Dispatcher.getLoggedUser(ctx),
+            });
             
             if (redirectEndpoint.data) {
                 logger.debug('Adding data');
