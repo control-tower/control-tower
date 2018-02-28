@@ -20,6 +20,7 @@ rules:
   eqeqeq: [2, "allow-null"]
   no-shadow: 1
   no-param-reassign: [2, { "props": false }]
+  no-underscore-dangle: 1
   indent: [2, 4]
   padded-blocks: [2, { "switches": "always", "classes": "always" }]
   quotes:

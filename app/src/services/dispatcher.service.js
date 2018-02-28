@@ -282,7 +282,7 @@ class Dispatcher {
                 logger.info('Is necesary authentication but the request is not authenticated');
                 throw new NotAuthenticated();
             }
-            
+
             if (endpoint.applicationRequired && !ctx.state.appKey) {
                 logger.info('Is necesary application-key but the request does not contain it');
                 throw new NotApplicationKey('Required app_key');
@@ -340,7 +340,7 @@ class Dispatcher {
             redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
                 loggedUser: Dispatcher.getLoggedUser(ctx),
             });
-            
+
             if (redirectEndpoint.data) {
                 logger.debug('Adding data');
                 if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {

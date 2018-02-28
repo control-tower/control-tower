@@ -4,7 +4,6 @@ const appConstants = require('app.constants');
 const MicroserviceModel = require('models/microservice.model');
 const EndpointModel = require('models/endpoint.model');
 const VersionModel = require('models/version.model');
-const MicroserviceDuplicated = require('errors/microserviceDuplicated');
 const MicroserviceNotExist = require('errors/microserviceNotExist');
 const request = require('request-promise');
 const url = require('url');
@@ -16,7 +15,7 @@ const JWT = Promise.promisifyAll(require('jsonwebtoken'));
 
 const MICRO_STATUS_PENDING = 'pending';
 const MICRO_STATUS_ACTIVE = 'active';
-const MICRO_STATUS_DEACTIVATED = 'deactivated';
+// const MICRO_STATUS_DEACTIVATED = 'deactivated';
 const MICRO_STATUS_ERROR = 'error';
 
 class Microservice {
@@ -126,9 +125,8 @@ class Microservice {
         }
     }
 
-    static generateUrlInfo(urlInfo, token, internalUrl) {
+    static generateUrlInfo(urlInfo) {
         logger.debug('Generating url info to microservice with url', urlInfo);
-        const queryParams = `token=${token}&url=${internalUrl}`;
         if (urlInfo.indexOf('?') >= 0) {
             return `${urlInfo}`;
         }
@@ -264,9 +262,9 @@ class Microservice {
                 });
                 micro = await MicroserviceModel.findById(exist._id);
             }
-             
-            if (!exist || exist.status !== MICRO_STATUS_PENDING ) {
-                
+
+            if (!exist || exist.status !== MICRO_STATUS_PENDING) {
+
                 try {
                     if (exist) {
                         await Microservice.remove(exist._id);
@@ -283,7 +281,6 @@ class Microservice {
                             tags: info.tags,
                             version,
                         }).save();
-                        
                     }
                     logger.debug(`Creating microservice with status ${MICRO_STATUS_PENDING}`);
 
@@ -313,12 +310,12 @@ class Microservice {
                     await micro.save();
                 }
                 return micro;
-            } else {
-                logger.error('Mutex active in microservice ', info.url);
             }
-        } catch(err) {
+            logger.error('Mutex active in microservice ', info.url);
+        } catch (err) {
             logger.error(err);
         }
+        return null;
     }
 
     static async tryRegisterErrorMicroservices() {
