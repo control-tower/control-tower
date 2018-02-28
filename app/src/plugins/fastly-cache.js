@@ -21,7 +21,11 @@ function middleware(app, plugin) {
                     if (ctx.state.redirect.endpoint.uncache) {
                         ctx.state.redirect.endpoint.uncache.forEach(tag => {
                             logger.debug('Invalidating cache of tag:', tag);
-                            fastlyPurge.key(SERVICE_ID, tag);
+                            fastlyPurge.key(SERVICE_ID, tag, (err) => {
+                                if (err) {
+                                    logger.error('Error purging', err);
+                                }
+                            });
                         });
                     }
                     ctx.set('Cache-Control', 'private');

@@ -397,7 +397,9 @@ class Dispatcher {
                 logger.debug('Adding headers');
                 configRequest.headers = Dispatcher.getHeadersFromRequest(ctx.request.headers);
             }
-            configRequest.headers.app_key = JSON.stringify(ctx.state.appKey);
+            if (ctx.state && ctx.state.appKey) {
+                configRequest.headers.app_key = JSON.stringify(ctx.state.appKey);
+            }
             configRequest.headers.user_key = JSON.stringify(Dispatcher.getLoggedUser(ctx));
 
             logger.debug('Checking if is json or formdata request');
