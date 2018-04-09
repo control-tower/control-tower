@@ -17,20 +17,24 @@ function middleware(app, plugin) {
             logger.debug('Endpoint', ctx.state.redirect.endpoint.invalidateCache);
             if (ctx.status >= 200 && ctx.status < 400) {
                 if (ctx.request.method !== 'GET') {
-                    logger.debug('Uncaching...');
-                    if (ctx.state.redirect.endpoint.uncache) {
-                        ctx.state.redirect.endpoint.uncache.forEach(tag => {
-                            logger.debug('Invalidating cache of tag:', tag);
-                            fastlyPurge.key(SERVICE_ID, tag, (err) => {
-                                if (err) {
-                                    logger.error('Error purging', err);
-                                }
-                            });
-                        });
-                    }
+                    // logger.debug('Uncaching...');
+                    // if (ctx.state.redirect.endpoint.uncache) {
+                    //     ctx.state.redirect.endpoint.uncache.forEach(tag => {
+                    //         logger.debug('Invalidating cache of tag:', tag);
+                    //         // fastlyPurge.key(SERVICE_ID, tag, (err) => {
+                    //         //     if (err) {
+                    //         //         logger.error('Error purging', err);
+                    //         //     }
+                    //         // });
+                    //     });
+                    // }
                     ctx.set('Cache-Control', 'private');
                 } else {
                     logger.debug('Sending headers of cache');
+                    if (ctx.state.redirect.endpoint.authenticated) {
+                        logger.debug('sending headers no cache');
+                        ctx.set('Cache-Control', 'private');
+                    }
                     if (ctx.state.redirect.endpoint.cache && ctx.state.redirect.endpoint.cache.length > 0) {
                         ctx.set('Surrogate-Key', ctx.state.redirect.endpoint.cache.join(' '));
                     } else {
