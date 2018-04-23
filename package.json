@@ -72,6 +72,7 @@
     "mongoose": "^5.0.0",
     "mongoose-regexp": "0.0.1",
     "path-to-regexp": "^1.5.3",
+    "redis": "2.8.0",
     "request": "^2.79.0",
     "request-promise": "^4.1.1",
     "restler": "^3.4.0",

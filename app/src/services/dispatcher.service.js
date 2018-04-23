@@ -1,7 +1,7 @@
 const logger = require('logger');
 const appConstants = require('app.constants');
 const EndpointModel = require('models/endpoint.model');
-const VersionModel = require('models/version.model');
+const versionService = require('services/version.service');
 const url = require('url');
 const EndpointNotFound = require('errors/endpointNotFound');
 const NotAuthenticated = require('errors/notAuthenticated');
@@ -242,9 +242,7 @@ class Dispatcher {
 
     static async getEndpoint(pathname, method) {
         logger.debug('Obtaining version');
-        const version = await VersionModel.findOne({
-            name: appConstants.ENDPOINT_VERSION,
-        });
+        const version = await versionService.get();
         logger.debug('Version found ', version);
         logger.debug('Version last', version.lastUpdated);
         if (!CACHE.version || !CACHE.version.lastUpdated || !version.lastUpdated || CACHE.version.lastUpdated.getTime() !== version.lastUpdated.getTime()) {

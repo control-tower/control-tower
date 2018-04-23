@@ -1,12 +1,11 @@
 const Router = require('koa-router');
 const MicroserviceModel = require('models/microservice.model');
-const VersionModel = require('models/version.model');
-const appConstants = require('app.constants');
 const logger = require('logger');
 const MicroserviceService = require('services/microservice.service');
 const MicroserviceDuplicated = require('errors/microserviceDuplicated');
 const MicroserviceNotExist = require('errors/microserviceNotExist');
 const Utils = require('utils');
+const versionService = require('services/version.service');
 
 const router = new Router({
     prefix: '/microservice',
@@ -16,18 +15,14 @@ class MicroserviceRouter {
 
     static async get(ctx) {
         logger.info('Obtaining microservices registered');
-        const versionFound = await VersionModel.findOne({
-            name: appConstants.ENDPOINT_VERSION,
-        });
+        const versionFound = await versionService.get();
         logger.debug('Found', versionFound);
         ctx.body = await MicroserviceModel.find({ version: versionFound.version }, { __v: 0 });
     }
 
     static async getStatus(ctx) {
         logger.info('Obtaining microservices status');
-        const versionFound = await VersionModel.findOne({
-            name: appConstants.ENDPOINT_VERSION,
-        });
+        const versionFound = await versionService.get();
         logger.debug('Found', versionFound);
         ctx.body = await MicroserviceModel.find({ version: versionFound.version }, { name: 1, infoStatus: 1, status: 1, _id: 0 });
     }

@@ -3,7 +3,7 @@ const config = require('config');
 const appConstants = require('app.constants');
 const MicroserviceModel = require('models/microservice.model');
 const EndpointModel = require('models/endpoint.model');
-const VersionModel = require('models/version.model');
+const versionService = require('services/version.service');
 const MicroserviceDuplicated = require('errors/microserviceDuplicated');
 const MicroserviceNotExist = require('errors/microserviceNotExist');
 const request = require('request-promise');
@@ -225,9 +225,7 @@ class Microservice {
             let versionExist = null;
             if (!version) {
                 versionExist = true;
-                const versionFound = await VersionModel.findOne({
-                    name: appConstants.ENDPOINT_VERSION,
-                });
+                const versionFound = await versionService.get();
                 version = versionFound.version;
                 versionExist = versionFound;
             }
@@ -299,7 +297,8 @@ class Microservice {
                         }
                         if (versionExist) {
                             versionExist.lastUpdated = new Date();
-                            await versionExist.save();
+                            logger.info('\n\n\n\n\nUPDATE CACHE\n\n\n\n\n', versionExist);
+                            versionService.set(versionExist);
                         }
                         logger.info('Updated successfully');
                     } else {
@@ -323,9 +322,7 @@ class Microservice {
 
     static async tryRegisterErrorMicroservices() {
         logger.info('Trying register microservices with status error');
-        const versionFound = await VersionModel.findOne({
-            name: appConstants.ENDPOINT_VERSION,
-        });
+        const versionFound = await versionService.get();
         const version = versionFound.version;
 
         const errorMicroservices = await MicroserviceModel.find({
@@ -457,9 +454,7 @@ class Microservice {
     static async checkLiveMicroservice() {
         logger.info('Check live microservices');
 
-        const versionFound = await VersionModel.findOne({
-            name: appConstants.ENDPOINT_VERSION,
-        });
+        const versionFound = versionService.get();
         logger.debug('Found', versionFound);
 
         logger.info('Obtaining microservices with version ', versionFound);
@@ -479,9 +474,7 @@ class Microservice {
     static async registerPackMicroservices(microservices) {
         logger.info('Refreshing all microservices');
         logger.debug('Obtaining new version');
-        const versionFound = await VersionModel.findOne({
-            name: appConstants.ENDPOINT_VERSION,
-        });
+        const versionFound = await versionService.get();
         logger.debug('Found', versionFound);
         const newVersion = versionFound.version + 1;
         logger.debug('New version is ', newVersion);
@@ -499,13 +492,8 @@ class Microservice {
             }
         }
         logger.info('Updating version of ENDPOINT_VERSION');
-        await VersionModel.update({
-            name: appConstants.ENDPOINT_VERSION,
-        }, {
-            $set: {
-                version: newVersion,
-            },
-        });
+        versionFound.version = newVersion;
+        versionService.set(versionFound);
         logger.info('Registered successfully');
     }
 

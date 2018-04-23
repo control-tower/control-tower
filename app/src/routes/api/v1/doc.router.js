@@ -2,7 +2,7 @@ const Router = require('koa-router');
 const MicroserviceModel = require('models/microservice.model');
 const logger = require('logger');
 const config = require('config');
-const VersionModel = require('models/version.model');
+const versionService = require('services/version.service');
 const appConstants = require('app.constants');
 
 const router = new Router({
@@ -40,9 +40,7 @@ class DocRouter {
     static async getSwagger(ctx) {
         logger.info('Obtaining swagger');
         const filters = {};
-        const versionFound = await VersionModel.findOne({
-            name: appConstants.ENDPOINT_VERSION,
-        });
+        const versionFound = await versionService.get();
         filters.version = versionFound.version;
 
         if (ctx.query.microservice) {

@@ -36,7 +36,9 @@ function middleware(app, plugin) {
                         ctx.set('Cache-Control', 'private');
                     }
                     if (ctx.state.redirect.endpoint.cache && ctx.state.redirect.endpoint.cache.length > 0) {
-                        ctx.set('Surrogate-Key', ctx.state.redirect.endpoint.cache.join(' '));
+                        if (!ctx.response.header || !ctx.response.header['surrogate-key']) {
+                            ctx.set('Surrogate-Key', ctx.state.redirect.endpoint.cache.join(' '));
+                        }
                     } else {
                         logger.debug('sending headers no cache');
                         ctx.set('Cache-Control', 'private');
