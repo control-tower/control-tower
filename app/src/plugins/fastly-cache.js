@@ -16,7 +16,8 @@ function middleware(app, plugin) {
         if (ctx.status >= 200 && ctx.status < 400) {
             if (ctx.request.method !== 'GET') {
                 if (ctx.response.headers && ctx.response.headers.uncache) {
-                    const tags = ctx.response.headers.uncache.split(' ');
+                    const tags = ctx.response.headers.uncache.split(' ').filter(part => part !== '');
+                    logger.debug('Uncache ', tags);
                     for (let i = 0, length = tags.length; i < length; i++) {
                         fastlyPurge.key(SERVICE_ID, tags[i], (err) => {
                             if (err) {
@@ -30,7 +31,9 @@ function middleware(app, plugin) {
                 if (ctx.state.redirect.endpoint.authenticated) {
                     ctx.set('Cache-Control', 'private');
                 } else if (ctx.response.headers && ctx.response.headers.cache) {
-                    ctx.set('Surrogate-Key', ctx.response.headers.cache);
+                    const key = ctx.response.headers.cache.split(' ').filter(part => part !== '').join(' ');
+                    logger.debug('Caching with key: ', key);
+                    ctx.set('Surrogate-Key', key);
                 }
             }
         }
