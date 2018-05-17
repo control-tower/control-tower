@@ -38,7 +38,9 @@ const ALLOWED_HEADERS = [
     'content-encoding',
     'Surrogate-Key',
     'surrogate-key',
-    'APP_KEY'
+    'APP_KEY',
+    'cache',
+    'uncache'
 ];
 
 function getHeadersFromResponse(response) {
