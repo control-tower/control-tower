@@ -28,7 +28,7 @@ function middleware(app, plugin) {
                 }
                 ctx.set('Cache-Control', 'private');
             } else {
-                if (ctx.state.redirect.endpoint.authenticated) {
+                if (!ctx.state.redirect || ctx.state.redirect.endpoint.authenticated) {
                     ctx.set('Cache-Control', 'private');
                 } else if (ctx.response.headers && ctx.response.headers.cache) {
                     const key = ctx.response.headers.cache.split(' ').filter(part => part !== '').join(' ');
