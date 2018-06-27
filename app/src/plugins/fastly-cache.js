@@ -34,6 +34,8 @@ function middleware(app, plugin) {
                     const key = ctx.response.headers.cache.split(' ').filter(part => part !== '').join(' ');
                     logger.debug('Caching with key: ', key);
                     ctx.set('Surrogate-Key', key);
+                } else {
+                    ctx.set('Cache-Control', 'private');
                 }
             }
         }
