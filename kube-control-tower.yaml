@@ -46,8 +46,6 @@ spec:
             value: dev
           - name: NODE_PATH
             value: app/src
-          - name: EXEC_MIGRATION
-            value: "true"
           - name: SESSION_KEY
             value: test
           - name: JWT_SECRET

@@ -166,7 +166,7 @@ class Dispatcher {
             }
         }
         if (!filters || filters.length === 0) {
-            logger.debug('Not contain filters. All redirect are valids');
+            logger.debug('Doesn\'t contain filters. All redirect are valid');
             return newEndpoint;
         }
         logger.debug('Obtaining data to check filters');
@@ -194,7 +194,7 @@ class Dispatcher {
         try {
             logger.debug('Doing requests');
             const results = await Promise.all(promisesRequest);
-            // TODO: Add support to serveral filter by each newEndpoint
+            // TODO: Add support for several filter in each newEndpoint
             for (let i = 0, length = results.length; i < length; i++) {
                 if (results[i].statusCode === 200) {
                     filters[i].result = {
@@ -275,152 +275,152 @@ class Dispatcher {
 
         if (!endpoint) {
             throw new EndpointNotFound(`${parsedUrl.pathname} not found`);
+        }
+
+        logger.debug('Endpoint found');
+        logger.debug('Checking if authentication is necessary');
+        if (endpoint.authenticated && !Dispatcher.getLoggedUser(ctx)) {
+            logger.info('Is necessary authentication but the request is not authenticated');
+            throw new NotAuthenticated();
+        }
+
+        if (endpoint.applicationRequired && !ctx.state.appKey) {
+            logger.info('Is necessary application-key but the request does not contain it');
+            throw new NotApplicationKey('Required app_key');
+        }
+        let redirectEndpoint = null;
+        endpoint = await Dispatcher.checkFilters(parsedUrl.pathname, endpoint);
+        if (endpoint && endpoint.redirect.length === 0) {
+            logger.error('Not exist redirects');
+            throw new EndpointNotFound(`${parsedUrl.pathname} not found`);
+        }
+
+        if (endpoint.redirect && endpoint.redirect.length > 1) {
+            logger.debug(`Found several redirect endpoints (num: ${endpoint.redirect.length}).
+            Obtaining final endpoint with random`);
+            const pos = Math.floor(Math.random() * endpoint.redirect.length);
+            logger.debug(`Position choose ${pos}`);
+            redirectEndpoint = endpoint.redirect[pos];
         } else {
-            logger.debug('Endpoint found');
-            logger.debug('Checking if is necesary authentication');
-            if (endpoint.authenticated && !Dispatcher.getLoggedUser(ctx)) {
-                logger.info('Is necesary authentication but the request is not authenticated');
-                throw new NotAuthenticated();
+            logger.debug('Only one redirect found');
+            redirectEndpoint = endpoint.redirect[0];
+        }
+        logger.info('Dispatching request from %s to %s%s private endpoint.',
+            parsedUrl.pathname, redirectEndpoint.url, redirectEndpoint.path);
+        logger.debug('endpoint', endpoint);
+        const finalUrl = await Dispatcher.buildUrl(parsedUrl.pathname, redirectEndpoint, endpoint);
+        let configRequest = { // eslint-disable-line prefer-const
+            uri: finalUrl,
+            method: redirectEndpoint.method,
+            // https://github.com/request/request-promise#user-content-get-a-rejection-only-if-the-request-failed-for-technical-reasons
+            simple: false,
+            resolveWithFullResponse: true,
+            binary: endpoint.binary,
+            headers: {}
+        };
+        if (ctx.request.query) {
+            logger.debug('Adding query params');
+            if (ctx.request.query.app_key) {
+                delete ctx.request.query.app_key;
             }
-            
-            if (endpoint.applicationRequired && !ctx.state.appKey) {
-                logger.info('Is necesary application-key but the request does not contain it');
-                throw new NotApplicationKey('Required app_key');
-            }
-            let redirectEndpoint = null;
-            endpoint = await Dispatcher.checkFilters(parsedUrl.pathname, endpoint);
-            if (endpoint && endpoint.redirect.length === 0) {
-                logger.error('Not exist redirects');
-                throw new EndpointNotFound(`${parsedUrl.pathname} not found`);
-            }
+            configRequest.qs = ctx.request.query;
+        }
 
-            if (endpoint.redirect && endpoint.redirect.length > 1) {
-                logger.debug(`Find several redirect endpoints (num: ${endpoint.redirect.length}).
-                Obtaining final endpoint with random`);
-                const pos = Math.floor(Math.random() * endpoint.redirect.length);
-                logger.debug(`Position choose ${pos}`);
-                redirectEndpoint = endpoint.redirect[pos];
+        logger.debug('Create request to %s', configRequest.uri);
+        if (configRequest.method === 'POST' || configRequest.method === 'PATCH' ||
+            configRequest.method === 'PUT') {
+            logger.debug('Method is %s. Adding body', configRequest.method);
+            if (ctx.request.body.fields) {
+                logger.debug('Is a form-data request');
+                configRequest.body = ctx.request.body.fields;
             } else {
-                logger.debug('Only contain one redirect');
-                redirectEndpoint = endpoint.redirect[0];
+                configRequest.body = ctx.request.body;
             }
-            logger.info('Dispathing request from %s to %s%s private endpoint.',
-                parsedUrl.pathname, redirectEndpoint.url, redirectEndpoint.path);
-            logger.debug('endpoint', endpoint);
-            const finalUrl = await Dispatcher.buildUrl(parsedUrl.pathname, redirectEndpoint, endpoint);
-            let configRequest = { // eslint-disable-line prefer-const
-                uri: finalUrl,
-                method: redirectEndpoint.method,
-                // https://github.com/request/request-promise#user-content-get-a-rejection-only-if-the-request-failed-for-technical-reasons
-                simple: false,
-                resolveWithFullResponse: true,
-                binary: endpoint.binary,
-                headers: {}
-            };
-            if (ctx.request.query) {
-                logger.debug('Adding query params');
-                if (ctx.request.query.app_key) {
-                    delete ctx.request.query.app_key;
-                }
-                configRequest.qs = ctx.request.query;
-            }
+        }
+        logger.debug('Adding logged user if it is logged');
+        redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
+            loggedUser: Dispatcher.getLoggedUser(ctx),
+        });
 
-            logger.debug('Create request to %s', configRequest.uri);
-            if (configRequest.method === 'POST' || configRequest.method === 'PATCH' ||
-                configRequest.method === 'PUT') {
-                logger.debug('Method is %s. Adding body', configRequest.method);
-                if (ctx.request.body.fields) {
-                    logger.debug('Is a form-data request');
-                    configRequest.body = ctx.request.body.fields;
-                } else {
-                    configRequest.body = ctx.request.body;
+        if (redirectEndpoint.data) {
+            logger.debug('Adding data');
+            if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
+                configRequest.qs = configRequest.qs || {};
+                const keys = Object.keys(redirectEndpoint.data);
+                for (let i = 0, length = keys.length; i < length; i++) {
+                    configRequest.qs[keys[i]] = JSON.stringify(redirectEndpoint.data[keys[i]]);
+                }
+            } else {
+                configRequest.body = Object.assign({}, configRequest.body, redirectEndpoint.data);
+            }
+        }
+        if (ctx.request.body.files) {
+            logger.debug('Adding files', ctx.request.body.files);
+            const files = ctx.request.body.files;
+            let formData = {}; // eslint-disable-line prefer-const
+            for (const key in files) { // eslint-disable-line no-restricted-syntax
+                if ({}.hasOwnProperty.call(files, key)) {
+                    formData[key] = {
+                        value: fs.createReadStream(files[key].path),
+                        options: {
+                            filename: files[key].name,
+                            contentType: files[key].type
+                        }
+                    };
                 }
             }
-            logger.debug('Adding logged user if it is logged');
-            redirectEndpoint.data = Object.assign({}, redirectEndpoint.data, {
-                loggedUser: Dispatcher.getLoggedUser(ctx),
-            });
-            
-            if (redirectEndpoint.data) {
-                logger.debug('Adding data');
-                if (configRequest.method === 'GET' || configRequest.method === 'DELETE') {
-                    configRequest.qs = configRequest.qs || {};
-                    const keys = Object.keys(redirectEndpoint.data);
-                    for (let i = 0, length = keys.length; i < length; i++) {
-                        configRequest.qs[keys[i]] = JSON.stringify(redirectEndpoint.data[keys[i]]);
-                    }
-                } else {
-                    configRequest.body = Object.assign({}, configRequest.body, redirectEndpoint.data);
-                }
-            }
-            if (ctx.request.body.files) {
-                logger.debug('Adding files', ctx.request.body.files);
-                const files = ctx.request.body.files;
-                let formData = {}; // eslint-disable-line prefer-const
-                for (const key in files) { // eslint-disable-line no-restricted-syntax
-                    if ({}.hasOwnProperty.call(files, key)) {
-                        formData[key] = {
-                            value: fs.createReadStream(files[key].path),
-                            options: {
-                                filename: files[key].name,
-                                contentType: files[key].type
-                            }
-                        };
-                    }
-                }
-                if (configRequest.body) {
-                    const body = {};
-                    // convert values to string because form-data is required that all values are string
-                    for (const key in configRequest.body) { // eslint-disable-line no-restricted-syntax
-                        if (key !== 'files') {
-                            if (configRequest.body[key] !== null && configRequest.body[key] !== undefined) {
-                                if (typeof configRequest.body[key] === 'object') {
-                                    body[key] = JSON.stringify(configRequest.body[key]);
-                                } else {
-                                    body[key] = configRequest.body[key];
-                                }
+            if (configRequest.body) {
+                const body = {};
+                // convert values to string because form-data is required that all values are string
+                for (const key in configRequest.body) { // eslint-disable-line no-restricted-syntax
+                    if (key !== 'files') {
+                        if (configRequest.body[key] !== null && configRequest.body[key] !== undefined) {
+                            if (typeof configRequest.body[key] === 'object') {
+                                body[key] = JSON.stringify(configRequest.body[key]);
                             } else {
-                                body[key] = 'null';
+                                body[key] = configRequest.body[key];
                             }
+                        } else {
+                            body[key] = 'null';
                         }
                     }
-                    configRequest.body = Object.assign(body, formData);
-                } else {
-                    configRequest.body = formData;
                 }
-
-                configRequest.multipart = true;
-
-
-            }
-            if (ctx.request.headers) {
-                logger.debug('Adding headers');
-                configRequest.headers = Dispatcher.getHeadersFromRequest(ctx.request.headers);
-            }
-            if (ctx.state && ctx.state.appKey) {
-                configRequest.headers.app_key = JSON.stringify(ctx.state.appKey);
-            }
-            configRequest.headers.user_key = JSON.stringify(Dispatcher.getLoggedUser(ctx));
-
-            logger.debug('Checking if is json or formdata request');
-            if (configRequest.multipart) {
-                logger.debug('Is FormData request');
-                configRequest.formData = configRequest.body;
-                delete configRequest.body;
-                delete configRequest.multipart;
+                configRequest.body = Object.assign(body, formData);
             } else {
-                logger.debug('Is JSON request');
-                configRequest.json = true;
-                delete configRequest.multipart;
+                configRequest.body = formData;
             }
-            configRequest.encoding = null; // all request have encoding null
 
-            logger.debug('Returning config', configRequest);
-            return {
-                configRequest,
-                endpoint,
-            };
+            configRequest.multipart = true;
+
+
         }
+        if (ctx.request.headers) {
+            logger.debug('Adding headers');
+            configRequest.headers = Dispatcher.getHeadersFromRequest(ctx.request.headers);
+        }
+        if (ctx.state && ctx.state.appKey) {
+            configRequest.headers.app_key = JSON.stringify(ctx.state.appKey);
+        }
+        configRequest.headers.user_key = JSON.stringify(Dispatcher.getLoggedUser(ctx));
+
+        logger.debug('Checking if is json or formdata request');
+        if (configRequest.multipart) {
+            logger.debug('Is FormData request');
+            configRequest.formData = configRequest.body;
+            delete configRequest.body;
+            delete configRequest.multipart;
+        } else {
+            logger.debug('Is JSON request');
+            configRequest.json = true;
+            delete configRequest.multipart;
+        }
+        configRequest.encoding = null; // all request have encoding null
+
+        logger.debug('Returning config', configRequest);
+        return {
+            configRequest,
+            endpoint,
+        };
     }
 
 }

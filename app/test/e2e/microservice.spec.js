@@ -1,84 +1,68 @@
 const logger = require('logger');
 const nock = require('nock');
-const request = require('superagent').agent();
-const { BASE_URL, TOKENS, CT_URL } = require('./test.constants');
-require('should');
+const chai = require('chai');
 
-async function deleteCurrentMicroservices() {
-    return new Promise((resolve, reject) => {
-        async function deleteMs() {
-            const currentMicroservices = await request
-                .get(`${BASE_URL}/microservice`)
-                .send()
-                .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-            const msIds = currentMicroservices.body.map(el => el._id);
-            try {
-                await Promise.all(msIds.map(id => {
-                    return request.delete(`${BASE_URL}/microservice/${id}`)
-                            .send()
-                            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-                }));
-                resolve();
-            } catch (err) {
-                reject(err);
-            }
-        }
-        deleteMs();
-    });
-}
+const Microservice = require('models/microservice.model');
+const Endpoint = require('models/endpoint.model');
+
+const { getTestServer } = require('./test-server');
+const { TOKENS } = require('./test.constants');
+
+const should = chai.should();
+
+let requester;
+
 
 describe('E2E tests', () => {
 
-    let server;
-    const microservice = {
-        name: `test-microservice`,
-        url: 'http://mymachine:8000',
-        active: true
-    };
-    const dataset = {
-        name: `dataset`,
-        url: 'http://mymachine:3000',
-        active: true
-    };
-    const adapterOne = {
-        name: `adapter-one`,
-        url: 'http://mymachine:8001',
-        active: true
-    };
-    const adapterTwo = {
-        name: `adapter-two`,
-        url: 'http://mymachine:8002',
-        active: true
-    };
+    before(async () => {
+        if (process.env.NODE_ENV !== 'test') {
+            throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
+        }
 
-    before(function (done) {
-        this.timeout(10000);
-        logger.info('Config mock requests');
-        require('app')()
-        .then((data) => {
-            server = data.server;
-            return deleteCurrentMicroservices();
-        }).then(() => {
-            done();
-        })
-        .catch(err => {
-            logger.error(err);
-            done();
-        });
+        requester = await getTestServer();
 
+        Microservice.deleteMany({}).exec();
+        Endpoint.deleteMany({}).exec();
+
+        nock.cleanAll();
     });
 
-    beforeEach(async function () {
-        // Delete BeforeEach
-        await deleteCurrentMicroservices();
-        nock('http://mymachine:8000')
+    it('Getting a list of microservices without being authenticated should fail', async () => {
+        try {
+            await requester.get(`/api/v1/microservice`).send();
+        } catch (e) {
+            logger.error(e);
+            e.response.status.should.equal(401);
+        }
+    });
+
+    it('Getting a list of microservices should return empty if no services are registered', async () => {
+        const response = await requester
+            .get(`/api/v1/microservice`)
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
+            .send();
+
+        response.status.should.equal(200);
+        response.body.should.be.an.instanceOf(Array).and.have.lengthOf(0);
+    });
+
+    /* Register a microservice */
+    it('Registering a microservice should be successful', async () => {
+        const testMicroserviceOne = {
+            name: `test-microservice-one`,
+            url: 'http://test-microservice-one:8000',
+            active: true
+        };
+
+        nock('http://test-microservice-one:8000')
             .get((uri) => {
                 logger.info('Uri', uri);
                 return uri.startsWith('/info');
             })
             .reply(200, {
                 swagger: {},
-                name: 'test-microservice',
+                name: 'test-microservice-one',
                 tags: ['test'],
                 endpoints: [{
                     path: '/v1/test',
@@ -90,11 +74,84 @@ describe('E2E tests', () => {
                 }]
             });
 
-        nock('http://mymachine:3000')
+        const response = await requester.post(`/api/v1/microservice`).send(testMicroserviceOne);
+
+        response.status.should.equal(200);
+        response.body.status.should.equal('active');
+
+        (await Microservice.find()).should.have.lengthOf(1);
+
+    });
+
+    it('Authorized status check and registered microservice (happy case)', async () => {
+        const response = await requester.get(`/api/v1/microservice`)
+            .send()
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
+
+        response.status.should.equal(200);
+    });
+
+    it('Deleting a microservice should delete endpoints but keep microservice document in the database (happy case)', async () => {
+        (await Microservice.find()).should.have.lengthOf(1);
+        (await Endpoint.find({ toDelete: true })).should.have.lengthOf(0);
+
+        const existingMicroservice = await requester.get(`/api/v1/microservice`)
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
+            .send();
+
+        const response = await requester.delete(`/api/v1/microservice/${existingMicroservice.body[0]._id}`)
+            .send()
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
+
+        response.status.should.equal(200);
+
+        (await Microservice.find()).should.have.lengthOf(1);
+        (await Endpoint.find({ toDelete: true })).should.have.lengthOf(1);
+
+    });
+
+    it('Getting endpoints for registered microservices should return a list of available endpoints (happy case)', async () => {
+        const response = await requester.get(`/api/v1/endpoint`)
+            .send()
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
+
+        response.status.should.equal(200);
+        response.body.should.be.an('array').and.have.lengthOf(1);
+    });
+
+    it('Get documentation for existing endpoints should be successful (happy case)', async () => {
+        const response = await requester.get(`/api/v1/doc/swagger`)
+            .send()
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
+
+        response.status.should.equal(200);
+    });
+
+    /* Testing redirects and filters */
+    it('Redirects and filters', async () => {
+        const testDatasetMicroservice = {
+            name: `dataset`,
+            url: 'http://test-dataset-microservice:3000',
+            active: true
+        };
+        const adapterOne = {
+            name: `adapter-one`,
+            url: 'http://adapter-one:8001',
+            active: true
+        };
+        const adapterTwo = {
+            name: `adapter-two`,
+            url: 'http://adapter-two:8002',
+            active: true
+        };
+
+        /* Dataset microservice */
+        nock('http://test-dataset-microservice:3000')
             .get((uri) => {
                 logger.info('Uri', uri);
                 return uri.startsWith('/info');
             })
+            .once()
             .reply(200, {
                 swagger: {},
                 name: 'dataset',
@@ -108,9 +165,12 @@ describe('E2E tests', () => {
                         path: '/api/v1/dataset/:dataset'
                     }
                 }]
-            })
+            });
+
+        nock('http://test-dataset-microservice:3000')
             .get('/api/v1/dataset/1111')
             .query(true)
+            .twice()
             .reply(200, {
                 status: 200,
                 detail: 'OK',
@@ -119,9 +179,12 @@ describe('E2E tests', () => {
                         provider: 'cartodb'
                     }
                 }
-            })
+            });
+
+        nock('http://test-dataset-microservice:3000')
             .get('/api/v1/dataset/2222')
             .query(true)
+            .twice()
             .reply(200, {
                 status: 200,
                 detail: 'OK',
@@ -132,11 +195,13 @@ describe('E2E tests', () => {
                 }
             });
 
-        nock('http://mymachine:8001')
+        /* Adapter 1 microservice */
+        nock('http://adapter-one:8001')
             .get((uri) => {
                 logger.info('Uri', uri);
                 return uri.startsWith('/info');
             })
+            .once()
             .reply(200, {
                 swagger: {},
                 name: 'adapter-one',
@@ -165,19 +230,25 @@ describe('E2E tests', () => {
                         }
                     }]
                 }]
-            })
+            });
+
+        nock('http://adapter-one:8001')
             .get('/api/v1/carto/query/1111')
             .query(true)
+            .once()
             .reply(200, {
                 status: 200,
                 query: 1000
             });
 
-        nock('http://mymachine:8002')
+
+        /* Adapter 2 microservice */
+        nock('http://adapter-two:8002')
             .get((uri) => {
                 logger.info('Uri', uri);
                 return uri.startsWith('/info');
             })
+            .once()
             .reply(200, {
                 swagger: {},
                 name: 'adapter-two',
@@ -206,141 +277,47 @@ describe('E2E tests', () => {
                         }
                     }]
                 }]
-            })
+            });
+
+        nock('http://adapter-two:8002')
             .get('/api/v1/arcgis/query/2222')
             .query(true)
+            .once()
             .reply(200, {
                 status: 200,
                 query: 2000
             });
-    });
 
-    /* Not registered microservices */
-    it('Not registered microservices', async() => {
-        let response;
-        try {
-            response = await request.get(`${BASE_URL}/microservice`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-        response.body.should.be.an.instanceOf(Array).and.have.lengthOf(0);
-    });
+        const responseOne = await requester.post(`/api/v1/microservice`).send(testDatasetMicroservice);
+        const responseTwo = await requester.post(`/api/v1/microservice`).send(adapterOne);
+        const responseThree = await requester.post(`/api/v1/microservice`).send(adapterTwo);
 
-    /* Register a microservice */
-    it('Register a microservice', async() => {
-        let response;
-        try {
-            response = await request.post(`${BASE_URL}/microservice`).send(microservice);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-    });
+        responseOne.status.should.equal(200);
+        responseOne.body.status.should.equal('active');
 
-    /* Check the status */
-    it('Unauthorized status check', async() => {
-        try {
-            await request.get(`${BASE_URL}/microservice`).send();
-        } catch (e) {
-            logger.error(e);
-            e.response.status.should.equal(401);
-        }
-    });
+        responseTwo.status.should.equal(200);
+        responseTwo.body.status.should.equal('active');
 
-    /* Check the status */
-    it('Authorized status check and registered microservice', async() => {
-        let response;
-        try {
-            response = await request.get(`${BASE_URL}/microservice`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-    });
+        responseThree.status.should.equal(200);
+        responseThree.body.status.should.equal('active');
 
-    /* Check the status */
-    it('Delete microservice', async() => {
-        const createdMicroservice = await request.post(`${BASE_URL}/microservice`).send(microservice);
-        let response;
-        try {
-            response = await request.delete(`${BASE_URL}/microservice/${createdMicroservice.body._id}`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-    });
+        const queryOne = await requester.get(`/v1/query/1111`);
+        const queryTwo = await requester.get(`/v1/query/2222`);
 
-    /* Get empty endpoints */
-    it('Get endpoints', async() => {
-        let response;
-        try {
-            response = await request.get(`${BASE_URL}/endpoint`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-        response.body.should.be.an.instanceOf(Array).and.have.lengthOf(0);
-    });
-
-    /* Register and get endpoints */
-    it('Get endpoints', async() => {
-        /* Register microservice again */
-        await request.post(`${BASE_URL}/microservice`).send(microservice);
-        let response;
-        try {
-            response = await request.get(`${BASE_URL}/endpoint`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-        response.body.should.be.an.instanceOf(Array).and.have.lengthOf(1);
-    });
-
-    /* Get docs */
-    it('Get docs', async() => {
-        let response;
-        try {
-            response = await request.get(`${BASE_URL}/doc/swagger`)
-            .send()
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`);
-        } catch (e) {
-            logger.error(e);
-        }
-        response.status.should.equal(200);
-    });
-
-    /* Testing redirects and filters */
-    it('Redirects and filters', async() => {
-        /* Register the microservice again */
-        await request.post(`${BASE_URL}/microservice`).send(dataset);
-        await request.post(`${BASE_URL}/microservice`).send(adapterOne);
-        await request.post(`${BASE_URL}/microservice`).send(adapterTwo);
-        let queryOne;
-        let queryTwo;
-        try {
-            queryOne = await request.get(`${CT_URL}/v1/query/1111`);
-            queryTwo = await request.get(`${CT_URL}/v1/query/2222`);
-        } catch (e) {
-            logger.error(e);
-        }
         queryOne.status.should.equal(200);
         queryOne.body.query.should.equal(1000);
         queryTwo.status.should.equal(200);
         queryTwo.body.query.should.equal(2000);
     });
 
+    afterEach(() => {
+        if (!nock.isDone()) {
+            throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
+        }
+    });
+
     after(() => {
-        server.close();
+        Microservice.deleteMany({}).exec();
+        Endpoint.deleteMany({}).exec();
     });
 });
