@@ -96,7 +96,7 @@ module.exports = function (grunt) {
                 options: {
                     include: ['app/src/**'],
                     exclude: '*.test.*',
-                    reporter: ['lcov', 'text-summary'],
+                    reporter: ['lcov', 'json', 'text-summary'],
                     reportDir: 'coverage',
                     all: true
                 },
