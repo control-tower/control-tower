@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+  - "9.4"
+cache:
+  directories:
+  - "node_modules"
+env:
+  - NODE_ENV=test
+  - PORT=5037
+  - LOGGER_TYPE=console
+  - DEBUG=redis-cache-plugin
+  - NODE_PATH=app/src
+  - EXEC_MIGRATION=true
+  - JWT_SECRET=mysecret
+  - COOKIE_DOMAIN=mymachine
+  - SESSION_KEY=test
+  - PUBLIC_URL=http://tower.dev:5037
