@@ -174,7 +174,7 @@ class Microservice {
     }
 
     static async generateToken(micro) {
-        const token = JWT.sign(micro, config.get('jwt.token'), {});
+        const token = JWT.sign(micro.toJSON(), config.get('jwt.token'), {});
         return token;
     }
 
@@ -186,9 +186,8 @@ class Microservice {
             const token = await Microservice.generateToken(micro);
             urlInfo = Microservice.generateUrlInfo(urlInfo, token, config.get('server.internalUrl'));
             logger.debug(`Doing request to ${urlInfo}`);
-            let result = null;
 
-            result = await request({
+            let result = await request({
                 url: urlInfo,
                 json: true,
                 method: 'GET',
@@ -222,18 +221,18 @@ class Microservice {
     static async register(info, ver) {
         try {
             let version = ver;
-            let versionExist = null;
+            let existingVersion = null;
             if (!version) {
-                versionExist = true;
+                existingVersion = true;
                 const versionFound = await VersionModel.findOne({
                     name: appConstants.ENDPOINT_VERSION,
                 });
                 version = versionFound.version;
-                versionExist = versionFound;
+                existingVersion = versionFound;
             }
             logger.info(`Registering new microservice with name ${info.name} and url ${info.url}`);
-            logger.debug('Search if exist');
-            let exist = await MicroserviceModel.findOne({
+            logger.debug('Search if microservice already exist');
+            let existingMicroservice = await MicroserviceModel.findOne({
                 url: info.url,
                 version,
             });
@@ -256,68 +255,68 @@ class Microservice {
             //     }
             // }
             let micro = null;
-            if (exist) {
-                exist = await MicroserviceModel.findByIdAndUpdate(exist._id, {
+            if (existingMicroservice) {
+                existingMicroservice = await MicroserviceModel.findByIdAndUpdate(existingMicroservice._id, {
                     $set: {
                         status: MICRO_STATUS_PENDING
                     }
                 });
-                micro = await MicroserviceModel.findById(exist._id);
+                micro = await MicroserviceModel.findById(existingMicroservice._id);
             }
-             
-            if (!exist || exist.status !== MICRO_STATUS_PENDING ) {
-                
-                try {
-                    if (exist) {
-                        await Microservice.remove(exist._id);
-                    } else {
-                        logger.debug(`Creating microservice with status ${MICRO_STATUS_PENDING}`);
 
-                        micro = await new MicroserviceModel({
-                            name: info.name,
-                            status: MICRO_STATUS_PENDING,
-                            url: info.url,
-                            pathInfo: info.pathInfo,
-                            swagger: info.swagger,
-                            token: crypto.randomBytes(20).toString('hex'),
-                            tags: info.tags,
-                            version,
-                        }).save();
-                        
-                    }
+            if (existingMicroservice && existingMicroservice.status === MICRO_STATUS_PENDING) {
+                logger.error('Mutex active in microservice ', info.url);
+                return null;
+            }
+
+            try {
+                if (existingMicroservice) {
+                    await Microservice.remove(existingMicroservice._id);
+                } else {
                     logger.debug(`Creating microservice with status ${MICRO_STATUS_PENDING}`);
 
+                    micro = await new MicroserviceModel({
+                        name: info.name,
+                        status: MICRO_STATUS_PENDING,
+                        url: info.url,
+                        pathInfo: info.pathInfo,
+                        swagger: info.swagger,
+                        token: crypto.randomBytes(20).toString('hex'),
+                        tags: info.tags,
+                        version,
+                    }).save();
 
-                    const correct = await Microservice.getInfoMicroservice(micro, version);
-                    if (correct) {
-                        logger.info(`Updating state of microservice with name ${micro.name}`);
-                        micro.status = MICRO_STATUS_ACTIVE;
-                        await micro.save();
-                        if (exist) {
-                            logger.info('Removing endpoints with toDelete to true');
-                            await Microservice.removeEndpointToDeleteOfMicroservice(exist._id);
-                        }
-                        if (versionExist) {
-                            versionExist.lastUpdated = new Date();
-                            await versionExist.save();
-                        }
-                        logger.info('Updated successfully');
-                    } else {
-                        logger.info(`Updated to error state microservice with name ${micro.name}`);
-                        micro.status = MICRO_STATUS_ERROR;
-                        await micro.save();
+                }
+                logger.debug(`Creating microservice with status ${MICRO_STATUS_PENDING}`);
+
+                const correct = await Microservice.getInfoMicroservice(micro, version);
+                if (correct) {
+                    logger.info(`Updating state of microservice with name ${micro.name}`);
+                    micro.status = MICRO_STATUS_ACTIVE;
+                    await micro.save();
+                    if (existingMicroservice) {
+                        logger.info('Removing endpoints with toDelete to true');
+                        await Microservice.removeEndpointToDeleteOfMicroservice(existingMicroservice._id);
                     }
-                } catch (err) {
-                    logger.error(err);
+                    if (existingVersion) {
+                        existingVersion.lastUpdated = new Date();
+                        await existingVersion.save();
+                    }
+                    logger.info('Updated successfully');
+                } else {
+                    logger.info(`Updated to error state microservice with name ${micro.name}`);
                     micro.status = MICRO_STATUS_ERROR;
                     await micro.save();
                 }
-                return micro;
-            } else {
-                logger.error('Mutex active in microservice ', info.url);
+            } catch (err) {
+                logger.error(err);
+                micro.status = MICRO_STATUS_ERROR;
+                await micro.save();
             }
-        } catch(err) {
+            return micro;
+        } catch (err) {
             logger.error(err);
+            return null;
         }
     }
 
@@ -359,25 +358,30 @@ class Microservice {
 
     static async removeEndpointOfMicroservice(micro) {
         logger.info(`Removing endpoints of microservice with url ${micro.url}`);
-        if (micro && micro.endpoints) {
-            for (let i = 0, length = micro.endpoints.length; i < length; i++) {
-                const endpoint = await EndpointModel.findOne({
-                    method: micro.endpoints[i].method,
-                    path: micro.endpoints[i].path,
-                    toDelete: false
-                }).exec();
-                if (endpoint) {
-                    const redirects = endpoint.redirect.filter((red) => red.url !== micro.url);
-                    if (redirects && redirects.length > 0) {
-                        logger.debug('Updating endpoint');
-                        endpoint.redirect = redirects;
-                        await endpoint.save();
-                    } else {
-                        logger.debug('Endpoint empty. Removing endpoint');
-                        endpoint.toDelete = true;
-                        await endpoint.save();
-                    }
-                }
+        if (!micro || !micro.endpoints) {
+            return;
+        }
+
+        for (let i = 0, length = micro.endpoints.length; i < length; i++) {
+            const endpoint = await EndpointModel.findOne({
+                method: micro.endpoints[i].method,
+                path: micro.endpoints[i].path,
+                toDelete: false
+            }).exec();
+
+            if (!endpoint) {
+                continue;
+            }
+
+            const redirects = endpoint.redirect.filter((red) => red.url !== micro.url);
+            if (redirects && redirects.length > 0) {
+                logger.debug('Updating endpoint');
+                endpoint.redirect = redirects;
+                await endpoint.save();
+            } else {
+                logger.debug('Endpoint empty. Removing endpoint');
+                endpoint.toDelete = true;
+                await endpoint.save();
             }
         }
     }
@@ -391,14 +395,15 @@ class Microservice {
         if (!micro) {
             throw new MicroserviceNotExist(`Microservice with id ${id} does not exist`);
         }
-        if (micro && micro.endpoints) {
-            for (let i = 0, length = micro.endpoints.length; i < length; i++) {
-                await EndpointModel.remove({
-                    method: micro.endpoints[i].method,
-                    path: micro.endpoints[i].path,
-                    toDelete: true
-                }).exec();
-            }
+        if (!micro.endpoints) {
+            return;
+        }
+        for (let i = 0, length = micro.endpoints.length; i < length; i++) {
+            await EndpointModel.remove({
+                method: micro.endpoints[i].method,
+                path: micro.endpoints[i].path,
+                toDelete: true
+            }).exec();
         }
     }
 

@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 const loader = require('loader');
 const path = require('path');
 const convert = require('koa-convert');
-const bluebird = require('bluebird');
 const mongoUri = process.env.CT_MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
 
 const koaBody = require('koa-body')({
@@ -41,7 +40,7 @@ async function init() {
             }
 
             const app = new Koa();
-            
+
             app.use(convert(koaBody));
             await loader.loadPlugins(app);
             app.use(koaLogger());
@@ -54,6 +53,7 @@ async function init() {
             resolve({ app, server });
         }
 
+        logger.info(`Connecting to MongoDB URL ${mongoUri}`);
         mongoose.connect(mongoUri, onDbReady);
     });
 }

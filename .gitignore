@@ -7,3 +7,5 @@ npm-debug.log
 IMPORTANT.txt
 .vscode
 processes.json
+.nyc_output
+coverage

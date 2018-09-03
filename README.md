@@ -2,41 +2,66 @@
 
 <img src="https://avatars0.githubusercontent.com/u/20566771?v=3&s=200" style="display: block; margin: 0 auto;">
 
+[![Build Status](https://travis-ci.org/control-tower/control-tower.svg?branch=develop)](https://travis-ci.org/control-tower/control-tower)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
+
+## Dependencies
+
+Control Tower is built using [Node.js](https://nodejs.org/en/), and can be executed either natively or using Docker, each of which has its own set of requirements.
+
+Native execution requires:
+- [Node.js](https://nodejs.org/en/)
+- [MongoDB](https://www.mongodb.com/)
+- [Redis](https://redis.io/)
+
+
+Execution using Docker requires:
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
 
 ## Getting started
 
-You only have to follow 4 steps:
-
-1 - Clone the repository
+Start by cloning the repository from github to your execution environment
 
 ```
 git clone https://github.com/control-tower/control-tower.git && cd control-tower
 ```
 
-2 - Create and complete your dev.env file with your configuration. The meaning of the variables is available in this [section](#documentation-environment-variables). You can find an example .env file in the project root.
+After that, follow one of the instructions below:
 
-3 - Raise Control Tower with Docker. You'll of course need Docker, and also Docker Compose installed in your machine. If you need to install it, visit this [web](https://www.docker.com/products/docker). You only need to execute the following command to run Control tower:
+### Using native executions
+
+1 - Set up your environment variables. See `dev.env.sample` for a list of variables you should set, which are described in detail in [this section](#documentation-environment-variables) of the documentation. Native execution will NOT load the `dev.env` file content, so you need to use another way to define those values
+
+2 - Install node dependencies using NPM:
+```
+npm install
+```
+
+3 - Start the application server:
+```
+npm start
+```
+Control Tower should now be up and accessible. To confirm, open [http://localhost:9000](http://localhost:9000/) (assuming the default settings) on your browser, which should show a 404 'Endpoint not found' message.
+
+### Using Docker
+
+1 - Create and complete your `dev.env` file with your configuration. The meaning of the variables is available in this [section](#documentation-environment-variables). You can find an example `dev.env.sample` file in the project root.
+
+2 - Execute the following command to run Control tower:
 
 ```
 ./controlTower.sh develop
 ```
 
 
-4 - It's recommended to add the following line to your `/etc/hosts` (if you are in Windows, the hosts file is located in `c:\Windows\System32\Drivers\etc\hosts` and you'll need to 'Run as administrator' your editor):
+3 - It's recommended to add the following line to your `/etc/hosts` (if you are in Windows, the hosts file is located in `c:\Windows\System32\Drivers\etc\hosts` and you'll need to 'Run as administrator' your editor):
 
 ```
 mymachine   <yourIP>
 ```
 
-Enjoy your brand new Control Tower!!!
-
-To check if Control Tower works, you can do a request to [http://mymachine:9000](http://mymachine:9000/) and the response should be 404 if you haven't registered already a microservice.
-
-
-```bash
-./controlTower.sh develop
-```
+Control Tower should now be up and accessible. To confirm, open [http://mymachine:9000](http://mymachine:9000/) on your browser, which should show a 404 'Endpoint not found' message.
 
 ## Documentation
 
@@ -83,7 +108,6 @@ Core Variables
 - LOGGER_TYPE => Type of logger. Possible values: console, syslog. Defaults to console.
 - NODE_ENV => Environment variable of nodejs. Required.
 - NODE_PATH => Required value. Always set it to 'app/src'.
-- EXEC_MIGRATION => If set to tue, Control Tower will execute the inital migration on startup. This is a neccesary step for the first time you run the application. Once the migrations are run, subsequent application deploys don't need to be migrated, so you should set it to false.
 
 Oauth Variables
 

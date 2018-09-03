@@ -147,7 +147,6 @@ class DispatcherRouter {
                 ctx.body = result.body;
                 ctx.response.type = result.headers['content-type'];
             }
-            
         } catch (err) {
             logger.error(err);
             if (err instanceof EndpointNotFound) {
