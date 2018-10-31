@@ -13,7 +13,7 @@ const should = chai.should();
 let requester;
 
 
-describe('E2E tests', () => {
+describe('Microservices endpoints', () => {
 
     before(async () => {
         if (process.env.NODE_ENV !== 'test') {
@@ -29,12 +29,8 @@ describe('E2E tests', () => {
     });
 
     it('Getting a list of microservices without being authenticated should fail', async () => {
-        try {
-            await requester.get(`/api/v1/microservice`).send();
-        } catch (e) {
-            logger.error(e);
-            e.response.status.should.equal(401);
-        }
+        const response = await requester.get(`/api/v1/microservice`).send();
+        response.status.should.equal(401);
     });
 
     it('Getting a list of microservices should return empty if no services are registered', async () => {
