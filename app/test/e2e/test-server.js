@@ -6,7 +6,16 @@ let requester;
 
 chai.use(chaiHttp);
 
-exports.getTestServer = async function getTestServer() {
+exports.getTestServer = async function getTestServer(forceNew = false) {
+    if (forceNew && requester) {
+        await new Promise((resolve) => {
+            requester.close(() => {
+                requester = null;
+                resolve();
+            });
+        });
+    }
+
     if (requester) {
         return requester;
     }
@@ -18,6 +27,6 @@ exports.getTestServer = async function getTestServer() {
     const serverPromise = require('../../src/app');
     const { server } = await serverPromise();
     requester = chai.request(server).keepOpen();
-    //
+
     return requester;
 };

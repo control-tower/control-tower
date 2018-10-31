@@ -6,10 +6,7 @@ const config = require('config');
 const userModelFunc = require('ct-oauth-plugin/lib/models/user.model');
 const userTempModelFunc = require('ct-oauth-plugin/lib/models/user-temp.model');
 
-<<<<<<< HEAD
-=======
 const { setPluginSetting } = require('./../utils');
->>>>>>> Add testing for registration process
 const { getTestServer } = require('./../test-server');
 const { TOKENS } = require('./../test.constants');
 
@@ -23,10 +20,7 @@ const connection = mongoose.createConnection(mongoUri);
 let UserModel;
 let UserTempModel;
 
-<<<<<<< HEAD
-=======
 
->>>>>>> Add testing for registration process
 describe('Auth endpoints tests', () => {
 
     before(async () => {
@@ -34,13 +28,9 @@ describe('Auth endpoints tests', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-<<<<<<< HEAD
-        requester = await getTestServer();
-=======
-        await setPluginSetting('oauth', 'allowPublicRegistration', false);
+        await setPluginSetting('oauth', 'allowPublicRegistration', true);
 
         requester = await getTestServer(true);
->>>>>>> Add testing for registration process
 
         UserModel = userModelFunc(connection);
         UserTempModel = userTempModelFunc(connection);
@@ -48,10 +38,6 @@ describe('Auth endpoints tests', () => {
         UserModel.deleteMany({}).exec();
         UserTempModel.deleteMany({}).exec();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> Add testing for registration process
         nock.cleanAll();
     });
 
@@ -173,21 +159,14 @@ describe('Auth endpoints tests', () => {
         confirmedUser.should.have.property('role').and.equal('USER');
     });
 
-<<<<<<< HEAD
-    after(() => {
-=======
     after(async () => {
->>>>>>> Add testing for registration process
         const UserModel = userModelFunc(connection);
         const UserTempModel = userTempModelFunc(connection);
 
         UserModel.deleteMany({}).exec();
         UserTempModel.deleteMany({}).exec();
-<<<<<<< HEAD
-=======
 
         await requester.close();
->>>>>>> Add testing for registration process
     });
 
     afterEach(() => {
