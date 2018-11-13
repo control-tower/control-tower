@@ -151,6 +151,7 @@ module.exports = async function init() {
                 expiresInMinutes: 0,
             },
             publicUrl: process.env.PUBLIC_URL,
+            allowPublicRegistration: true
         },
     }).save();
 
