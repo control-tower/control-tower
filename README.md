@@ -3,6 +3,7 @@
 <img src="https://avatars0.githubusercontent.com/u/20566771?v=3&s=200" style="display: block; margin: 0 auto;">
 
 [![Build Status](https://travis-ci.org/control-tower/control-tower.svg?branch=develop)](https://travis-ci.org/control-tower/control-tower)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/27e5b69947977f399125/test_coverage)](https://codeclimate.com/github/control-tower/control-tower/test_coverage)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
 ## Dependencies
