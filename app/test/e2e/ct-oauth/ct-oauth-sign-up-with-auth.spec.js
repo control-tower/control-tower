@@ -27,6 +27,9 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
+        // We need to force-start the server, to ensure mongo has plugin info we can manipulate in the next instruction
+        await getTestServer(true);
+
         await setPluginSetting('oauth', 'allowPublicRegistration', false);
 
         requester = await getTestServer(true);

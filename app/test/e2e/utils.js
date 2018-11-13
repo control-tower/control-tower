@@ -13,7 +13,7 @@ async function setPluginSetting(pluginName, settingKey, settingValue) {
 
             const plugin = await Plugin.findOne({ name: pluginName }).exec();
             if (!plugin) {
-                throw new Error(`Plugin '${pluginName}' could not be found.`);
+                reject(`Plugin '${pluginName}' could not be found.`);
             }
 
             const obj = {};
