@@ -8,7 +8,6 @@ const userTempModelFunc = require('ct-oauth-plugin/lib/models/user-temp.model');
 
 const { setPluginSetting } = require('./../utils');
 const { getTestServer } = require('./../test-server');
-const { TOKENS } = require('./../test.constants');
 
 const should = chai.should();
 
@@ -80,7 +79,7 @@ describe('OAuth endpoints tests - Recover password', () => {
         response.text.should.include(`User not found`);
     });
 
-    it('Recover password request with non-existing email should return an error - JSON format', async () => {
+    it('Recover password request with non-existing email should return a 422 error - JSON format', async () => {
         const response = await requester
             .post(`/auth/reset-password`)
             .set('Content-Type', 'application/json')
@@ -88,7 +87,7 @@ describe('OAuth endpoints tests - Recover password', () => {
                 email: 'pepito@gmail.com'
             });
 
-        response.status.should.equal(400);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].should.have.property('detail').and.equal(`User not found`);

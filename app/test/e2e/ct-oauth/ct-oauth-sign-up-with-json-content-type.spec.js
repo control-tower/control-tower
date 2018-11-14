@@ -43,16 +43,16 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
         nock.cleanAll();
     });
 
-    it('Registering a user without being logged in returns a 200 error (TODO: this should return a 422) - JSON version', async () => {
+    it('Registering a user without being logged in returns a 422 error - JSON version', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
             .set('Content-Type', 'application/json')
             .send();
 
-        response.status.should.equal(500);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
@@ -62,14 +62,14 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
             .set('Content-Type', 'application/json')
             .send();
 
-        response.status.should.equal(500);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
-    it('Registering a user with partial data returns a 200 error (TODO: this should return a 422)', async () => {
+    it('Registering a user with partial data returns a 200 error', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
             .set('Content-Type', 'application/json')
@@ -77,14 +77,14 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
                 email: 'someemail@gmail.com'
             });
 
-        response.status.should.equal(500);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
-    it('Registering a user with different passwords returns a 200 error (TODO: this should return a 422)', async () => {
+    it('Registering a user with different passwords returns a 422 error', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
             .set('Content-Type', 'application/json')
@@ -94,14 +94,14 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
                 repeatPassword: 'anotherpassword'
             });
 
-        response.status.should.equal(500);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Password and Repeat password not equal');
     });
 
-    it('Registering a user with different passwords returns a 500 error', async () => {
+    it('Registering a user with different passwords returns a 422 error', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
             .set('Content-Type', 'application/json')
@@ -111,10 +111,10 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
                 repeatPassword: 'anotherpassword'
             });
 
-        response.status.should.equal(500);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Password and Repeat password not equal');
 
         const tempUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
@@ -159,7 +159,7 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
         user.extraUserData.should.have.property('apps').and.be.an('array').and.be.empty;
     });
 
-    it('Registering a user with an existing email address (temp user) returns a 200 error (TODO: this should return a 422)', async () => {
+    it('Registering a user with an existing email address (temp user) returns a 422 error', async () => {
         const tempUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.exist(tempUser);
 
@@ -172,10 +172,10 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
                 repeatPassword: 'somepassword'
             });
 
-        response.status.should.equal(500);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Email exist');
     });
 
@@ -212,7 +212,7 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
         confirmedUser.extraUserData.should.have.property('apps').and.be.an('array').and.be.empty;
     });
 
-    it('Registering a user with an existing email address (confirmed user) returns a 200 error (TODO: this should return a 422)', async () => {
+    it('Registering a user with an existing email address (confirmed user) returns a 422 error', async () => {
         const user = await UserModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.exist(user);
 
@@ -225,10 +225,10 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
                 repeatPassword: 'somepassword'
             });
 
-        response.status.should.equal(500);
+        response.status.should.equal(422);
         response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Email exist');
     });
 
