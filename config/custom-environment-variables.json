@@ -1,38 +1,39 @@
 {
-    "mongodb":{
-        "database": "MONGO_PORT_27017_TCP_DATABASE",
-        "host": "MONGO_PORT_27017_TCP_ADDR",
-        "port": "MONGO_PORT_27017_TCP_PORT"
-    },
-    "logger": {
-        "type": "LOGGER_TYPE",
-        "syslog": {
-            "host": "LOGGER_SYSLOG_HOST",
-            "port": "LOGGER_SYSLOG_PORT"
-        }
-    },
-    "server":{
-        "internalUrl": "INTERNAL_URL",
-        "publicUrl": "PUBLIC_URL"
-    },
-    "consul": {
-        "url": "CONSUL_URL",
-        "basicAuth":{
-            "username": "CONSUL_BASICAUTH_USERNAME",
-            "password": "CONSUL_BASICAUTH_PASSWORD"
-        }
-    },
-    "application": {
-        "name": "APP_NAME",
-        "logo": "APP_LOGO",
-        "principalColor": "APP_COLOR"
-    },
-    "instapush": {
-        "token": "INSTAPUSH_TOKEN",
-        "id": "INSTAPUSH_ID",
-        "secret": "INSTAPUSH_SECRET"
-    },
-    "jwt": {
-        "token": "JWT_SECRET"
+  "mongodb": {
+    "database": "MONGO_PORT_27017_TCP_DATABASE",
+    "host": "MONGO_PORT_27017_TCP_ADDR",
+    "port": "MONGO_PORT_27017_TCP_PORT"
+  },
+  "logger": {
+    "type": "LOGGER_TYPE",
+    "level": "LOGGER_LEVEL",
+    "syslog": {
+      "host": "LOGGER_SYSLOG_HOST",
+      "port": "LOGGER_SYSLOG_PORT"
     }
+  },
+  "server": {
+    "internalUrl": "INTERNAL_URL",
+    "publicUrl": "PUBLIC_URL"
+  },
+  "consul": {
+    "url": "CONSUL_URL",
+    "basicAuth": {
+      "username": "CONSUL_BASICAUTH_USERNAME",
+      "password": "CONSUL_BASICAUTH_PASSWORD"
+    }
+  },
+  "application": {
+    "name": "APP_NAME",
+    "logo": "APP_LOGO",
+    "principalColor": "APP_COLOR"
+  },
+  "instapush": {
+    "token": "INSTAPUSH_TOKEN",
+    "id": "INSTAPUSH_ID",
+    "secret": "INSTAPUSH_SECRET"
+  },
+  "jwt": {
+    "token": "JWT_SECRET"
+  }
 }
