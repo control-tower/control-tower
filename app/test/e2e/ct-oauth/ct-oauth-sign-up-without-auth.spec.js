@@ -31,6 +31,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
         await getTestServer(true);
 
         await setPluginSetting('oauth', 'allowPublicRegistration', true);
+        await setPluginSetting('oauth', 'disableEmailSending', true);
 
         requester = await getTestServer(true);
 
@@ -46,6 +47,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
     it('Registering a user without being logged in returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send();
 
         response.status.should.equal(200);
@@ -55,6 +57,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
     it('Registering a user without the actual data returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send();
 
         response.status.should.equal(200);
@@ -64,6 +67,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
     it('Registering a user with partial data returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send({
                 email: 'someemail@gmail.com'
             });
@@ -75,6 +79,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
     it('Registering a user with different passwords returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
@@ -88,6 +93,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
     it('Registering a user with different passwords returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
@@ -107,6 +113,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
@@ -114,7 +121,8 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
             });
 
         response.status.should.equal(200);
-        response.text.should.include('Error creating user.'); // This is an error with the mailer, not with the user creation
+        response.text.should.include('Register correct');
+        response.text.should.include('Check your email and confirm your account');
 
         const user = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.exist(user);
@@ -133,6 +141,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
@@ -172,6 +181,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
@@ -190,6 +200,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .send({
                 email: 'someotheremail@gmail.com',
                 password: 'somepassword',
@@ -198,7 +209,8 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
             });
 
         response.status.should.equal(200);
-        response.text.should.include('Error creating user.'); // This is an error with the mailer, not with the user creation
+        response.text.should.include('Register correct');
+        response.text.should.include('Check your email and confirm your account');
 
         const user = await UserTempModel.findOne({ email: 'someotheremail@gmail.com' }).exec();
         should.exist(user);

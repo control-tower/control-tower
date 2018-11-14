@@ -22,7 +22,7 @@ function middleware(app) {
                 }
             }
         } catch (err) {
-            logger.error('Error formating', err);
+            logger.error('Error formatting', err);
         }
     });
 }
