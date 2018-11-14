@@ -8,7 +8,6 @@ const userTempModelFunc = require('ct-oauth-plugin/lib/models/user-temp.model');
 
 const { setPluginSetting } = require('./../utils');
 const { getTestServer } = require('./../test-server');
-const { TOKENS } = require('./../test.constants');
 
 const should = chai.should();
 
@@ -20,7 +19,8 @@ const connection = mongoose.createConnection(mongoUri);
 let UserModel;
 let UserTempModel;
 
-describe('OAuth endpoints tests - Sign up without auth', () => {
+
+describe('OAuth endpoints tests - Sign up with JSON content type', () => {
 
     before(async () => {
         if (process.env.NODE_ENV !== 'test') {
@@ -30,8 +30,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
         // We need to force-start the server, to ensure mongo has plugin info we can manipulate in the next instruction
         await getTestServer(true);
 
-        await setPluginSetting('oauth', 'allowPublicRegistration', false);
-        await setPluginSetting('oauth', 'disableEmailSending', true);
+        await setPluginSetting('oauth', 'allowPublicRegistration', true);
 
         requester = await getTestServer(true);
 
@@ -44,67 +43,82 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
         nock.cleanAll();
     });
 
-    it('Registering a user without being logged in returns an 401 error', async () => {
+    it('Registering a user without being logged in returns a 200 error (TODO: this should return a 422) - JSON version', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
+            .set('Content-Type', 'application/json')
             .send();
 
-        response.status.should.equal(401);
+        response.status.should.equal(500);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].should.have.property('detail').and.equal(`Not authenticated`);
+        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
     it('Registering a user without the actual data returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
+            .set('Content-Type', 'application/json')
             .send();
 
-        response.status.should.equal(200);
-        response.text.should.include('Email, Password and Repeat password are required');
+        response.status.should.equal(500);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
     it('Registering a user with partial data returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
-            .type('form')
+            .set('Content-Type', 'application/json')
             .send({
                 email: 'someemail@gmail.com'
             });
 
-        response.status.should.equal(200);
-        response.text.should.include('Email, Password and Repeat password are required');
+        response.status.should.equal(500);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
     it('Registering a user with different passwords returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
-            .type('form')
+            .set('Content-Type', 'application/json')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
                 repeatPassword: 'anotherpassword'
             });
 
-        response.status.should.equal(200);
-        response.text.should.include('Password and Repeat password not equal');
+        response.status.should.equal(500);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].detail.should.equal('Password and Repeat password not equal');
     });
 
-    it('Registering a user with different passwords returns a 200 error (TODO: this should return a 422)', async () => {
+    it('Registering a user with different passwords returns a 500 error', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
-            .type('form')
+            .set('Content-Type', 'application/json')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
                 repeatPassword: 'anotherpassword'
             });
 
-        response.status.should.equal(200);
-        response.text.should.include('Password and Repeat password not equal');
+        response.status.should.equal(500);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].detail.should.equal('Password and Repeat password not equal');
+
+        const tempUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
+        should.not.exist(tempUser);
     });
 
     // User registration - no app
@@ -114,8 +128,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
-            .type('form')
+            .set('Content-Type', 'application/json')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
@@ -123,11 +136,20 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
             });
 
         response.status.should.equal(200);
-        response.text.should.include('Register correct');
-        response.text.should.include('Check your email and confirm your account');
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        // eslint-disable-next-line
+        response.body.should.have.property('data').and.not.be.empty;
+
+        const responseUser = response.body.data;
+        responseUser.should.have.property('email').and.equal('someemail@gmail.com');
+        responseUser.should.have.property('role').and.equal('USER');
+        responseUser.should.have.property('extraUserData').and.be.an('object');
+        // eslint-disable-next-line
+        responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.be.empty;
 
         const user = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.exist(user);
+
         user.should.have.property('email').and.equal('someemail@gmail.com');
         user.should.have.property('role').and.equal('USER');
         // eslint-disable-next-line
@@ -143,16 +165,18 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
-            .type('form')
+            .set('Content-Type', 'application/json')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
                 repeatPassword: 'somepassword'
             });
 
-        response.status.should.equal(200);
-        response.text.should.include('Email exist');
+        response.status.should.equal(500);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].detail.should.equal('Email exist');
     });
 
     it('Confirming a user\'s account using the email token should be successful', async () => {
@@ -160,11 +184,21 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .get(`/auth/confirm/${tempUser.confirmationToken}`)
+            .set('Content-Type', 'application/json')
             .send();
 
         response.status.should.equal(200);
-        response.body.should.have.property('email').and.equal('someemail@gmail.com');
-        response.body.should.have.property('role').and.equal('USER');
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        // eslint-disable-next-line
+        response.should.have.property('body').and.not.be.empty;
+
+        const responseUser = response.body;
+        responseUser.should.have.property('email').and.equal('someemail@gmail.com');
+        responseUser.should.have.property('role').and.equal('USER');
+        responseUser.should.have.property('extraUserData').and.be.an('object');
+        // eslint-disable-next-line
+        responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.be.empty;
+
 
         const missingTempUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.not.exist(missingTempUser);
@@ -184,16 +218,18 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
-            .type('form')
+            .set('Content-Type', 'application/json')
             .send({
                 email: 'someemail@gmail.com',
                 password: 'somepassword',
                 repeatPassword: 'somepassword'
             });
 
-        response.status.should.equal(200);
-        response.text.should.include('Email exist');
+        response.status.should.equal(500);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(500);
+        response.body.errors[0].detail.should.equal('Email exist');
     });
 
 
@@ -204,8 +240,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .post(`/auth/sign-up`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
-            .type('form')
+            .set('Content-Type', 'application/json')
             .send({
                 email: 'someotheremail@gmail.com',
                 password: 'somepassword',
@@ -214,8 +249,17 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
             });
 
         response.status.should.equal(200);
-        response.text.should.include('Register correct');
-        response.text.should.include('Check your email and confirm your account');
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        // eslint-disable-next-line
+        response.body.should.have.property('data').and.not.be.empty;
+
+        const responseUser = response.body.data;
+        responseUser.should.have.property('email').and.equal('someotheremail@gmail.com');
+        responseUser.should.have.property('role').and.equal('USER');
+        responseUser.should.have.property('extraUserData').and.be.an('object');
+        // eslint-disable-next-line
+        responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.contain('rw');
+
 
         const user = await UserTempModel.findOne({ email: 'someotheremail@gmail.com' }).exec();
         should.exist(user);
@@ -232,9 +276,11 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         const response = await requester
             .get(`/auth/confirm/${tempUser.confirmationToken}`)
+            .set('Content-Type', 'application/json')
             .send();
 
         response.status.should.equal(200);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('email').and.equal('someotheremail@gmail.com');
         response.body.should.have.property('role').and.equal('USER');
 
@@ -255,8 +301,6 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         UserModel.deleteMany({}).exec();
         UserTempModel.deleteMany({}).exec();
-
-        await requester.close();
     });
 
     afterEach(() => {
