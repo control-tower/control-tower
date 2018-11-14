@@ -44,12 +44,13 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
         nock.cleanAll();
     });
 
-    it('Registering a user without being logged in returns an 401 error', async () => {
+    it('Registering a user without being logged in returns an 401 error (JSON format)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
             .send();
 
         response.status.should.equal(401);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].should.have.property('detail').and.equal(`Not authenticated`);
     });
@@ -57,6 +58,7 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
     it('Registering a user without the actual data returns a 200 error (TODO: this should return a 422)', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
+            .type('form')
             .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
             .send();
 
@@ -195,7 +197,6 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
         response.status.should.equal(200);
         response.text.should.include('Email exist');
     });
-
 
     // User registration - with app
     it('Registering a user with correct data and app returns a 200', async () => {
