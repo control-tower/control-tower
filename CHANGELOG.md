@@ -1,4 +1,4 @@
-# 1.0.75
+# 1.0.76
 - Update `ct-oauth` to 1.8.12 - refer to [the plugin's changelog](https://github.com/control-tower/ct-oauth-plugin/blob/1.8.12/CHANGELOG.md) for more details
 
 # 1.0.72
