@@ -75,7 +75,7 @@ describe('Auth endpoints tests', () => {
         responseUser.should.have.property('email').and.equal('test@example.com');
         responseUser.should.have.property('role').and.equal('USER');
         responseUser.should.have.property('extraUserData').and.be.an('object');
-        responseUser.should.have.property('token').and.not.be.empty;
+        responseUser.should.have.property('token').and.be.an('string').and.not.be.empty;
         // eslint-disable-next-line
         responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.contain('rw');
     });
