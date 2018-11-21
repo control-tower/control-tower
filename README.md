@@ -141,6 +141,49 @@ Live cron variables
 - INSTAPUSH_ID		=> Instapush ID for sending alerts to mobile devices with the Live cron. It's required if you activate Live cron.
 - INSTAPUSH_SECRET	=> Instapush secret for sending alerts to mobile devices with the Live cron. It's required if you activate Live cron.
 
+### Audit and statistics
+
+Actions going through Control Tower are logged on the `stadistics` (sorry about the typo) table, with the following format:
+
+```json
+{
+  "_id": "5bf32aebdc8049c3a0943d7e",
+  "sourcePath": "/v1/dataset/1234/layer/5678",
+  "sourceMethod": "DELETE",
+  "errorCode": null,
+  "time": 348,
+  "ip": "123.123.123.123",
+  "loggedUser": {
+    "iat": 1542063295,
+    "createdAt": 1542063295822,
+    "extraUserData": {
+      "apps": [
+        "gfw",
+        "forest-atlas",
+        "rw"
+      ]
+    },
+    "email": "john@doe.org",
+    "provider": "local",
+    "role": "ADMIN",
+    "id": "796512a56dfc643722bdd02ab"
+  },
+  "endpointPath": "/v1/dataset/:dataset/layer/:layer",
+  "redirectUrl": "http://layer.default.svc.cluster.local:6000/api/v1/dataset/1234/layer/5678",
+  "redirectMethod": "DELETE",
+  "geo": {
+    "completed": true
+  },
+  "anonymous": false,
+  "error": false,
+  "cached": false,
+  "date": "2018-01-01T00:11:22.333Z",
+  "__v": 0
+}
+```
+
+There's currently no UI to review this data, but MongoDB queries are your friends. Keep in mind that this is a very large table, so expensive operations like sorting on unfiltered will take some time.
+
 ### Plugins
 
 TODO
