@@ -33,7 +33,7 @@ describe('Auth endpoints tests', () => {
         nock.cleanAll();
     });
 
-    it('Visiting /auth should redirect to the login page', async () => {
+    it('Visiting /auth while not logged in should redirect to the login page', async () => {
         const response = await requester
             .get(`/auth`)
             .send();
@@ -44,7 +44,7 @@ describe('Auth endpoints tests', () => {
         response.redirects[0].should.match(/\/auth\/login$/);
     });
 
-    it('Visiting /auth should redirect to the login page', async () => {
+    it('Visiting /auth while logged in should redirect to the success page', async () => {
         const response = await requester
             .get(`/auth`)
             .set('Authorization', `Bearer ${TOKENS.ADMIN}`)

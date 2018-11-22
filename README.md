@@ -30,7 +30,7 @@ git clone https://github.com/control-tower/control-tower.git && cd control-tower
 
 After that, follow one of the instructions below:
 
-### Using native executions
+### Using native execution
 
 1 - Set up your environment variables. See `dev.env.sample` for a list of variables you should set, which are described in detail in [this section](#documentation-environment-variables) of the documentation. Native execution will NOT load the `dev.env` file content, so you need to use another way to define those values
 
@@ -63,6 +63,25 @@ mymachine   <yourIP>
 ```
 
 Control Tower should now be up and accessible. To confirm, open [http://mymachine:9000](http://mymachine:9000/) on your browser, which should show a 404 'Endpoint not found' message.
+
+## Testing
+
+There are two ways to run the included tests:
+
+### Using native execution
+
+Follow the instruction above for setting up the runtime environment for native execution, then run:
+```
+npm test
+```
+
+### Using Docker
+
+Follow the instruction above for setting up the runtime environment for Docker execution, then run:
+```
+./controlTower.sh test
+```
+
 
 ## Documentation
 
