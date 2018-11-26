@@ -18,6 +18,9 @@ const connection = mongoose.createConnection(mongoUri);
 
 let UserModel;
 
+nock.disableNetConnect();
+nock.enableNetConnect(process.env.HOST_IP);
+
 describe('Auth endpoints tests', () => {
 
     before(async () => {

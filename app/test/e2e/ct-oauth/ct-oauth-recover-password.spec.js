@@ -6,7 +6,6 @@ const config = require('config');
 const userModelFunc = require('ct-oauth-plugin/lib/models/user.model');
 const userTempModelFunc = require('ct-oauth-plugin/lib/models/user-temp.model');
 
-const { setPluginSetting } = require('./../utils');
 const { getTestServer } = require('./../test-server');
 
 const should = chai.should();
@@ -19,6 +18,9 @@ const connection = mongoose.createConnection(mongoUri);
 let UserModel;
 let UserTempModel;
 
+nock.disableNetConnect();
+nock.enableNetConnect(process.env.HOST_IP);
+
 describe('OAuth endpoints tests - Recover password', () => {
 
     before(async () => {
@@ -28,8 +30,6 @@ describe('OAuth endpoints tests - Recover password', () => {
 
         // We need to force-start the server, to ensure mongo has plugin info we can manipulate in the next instruction
         await getTestServer(true);
-
-        await setPluginSetting('oauth', 'disableEmailSending', true);
 
         requester = await getTestServer(true);
 
@@ -94,6 +94,29 @@ describe('OAuth endpoints tests - Recover password', () => {
     });
 
     it('Recover password request with correct email should return OK - HTML format', async () => {
+        nock('https://api.sparkpost.com')
+            .post('/api/v1/transmissions', (body) => {
+                const expectedRequestBody = {
+                    content: {
+                        template_id: 'recover-password'
+                    },
+                    recipients: [
+                        {
+                            address: {
+                                email: 'potato@gmail.com'
+                            }
+                        }
+                    ]
+                };
+
+                return (
+                    body.substitution_data.urlRecover.match(/http.\/\/tower\.dev:5037\/auth\/reset-password\/[\w*]/) &&
+                    body.content.template_id === expectedRequestBody.content.template_id &&
+                    body.recipients[0].address.email === expectedRequestBody.recipients[0].address.email
+                );
+            })
+            .reply(200);
+
         await new UserModel({
             email: 'potato@gmail.com'
         }).save();
@@ -111,6 +134,29 @@ describe('OAuth endpoints tests - Recover password', () => {
     });
 
     it('Recover password request with correct email should return OK - JSON format', async () => {
+        nock('https://api.sparkpost.com')
+            .post('/api/v1/transmissions', (body) => {
+                const expectedRequestBody = {
+                    content: {
+                        template_id: 'recover-password'
+                    },
+                    recipients: [
+                        {
+                            address: {
+                                email: 'potato@gmail.com'
+                            }
+                        }
+                    ]
+                };
+
+                return (
+                    body.substitution_data.urlRecover.match(/http.\/\/tower\.dev:5037\/auth\/reset-password\/[\w*]/) &&
+                    body.content.template_id === expectedRequestBody.content.template_id &&
+                    body.recipients[0].address.email === expectedRequestBody.recipients[0].address.email
+                );
+            })
+            .reply(200);
+
         const response = await requester
             .post(`/auth/reset-password`)
             .set('Content-Type', 'application/json')

@@ -20,6 +20,9 @@ const connection = mongoose.createConnection(mongoUri);
 let UserModel;
 let UserTempModel;
 
+nock.disableNetConnect();
+nock.enableNetConnect(process.env.HOST_IP);
+
 describe('OAuth endpoints tests - Sign up without auth', () => {
 
     before(async () => {
@@ -31,7 +34,6 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
         await getTestServer(true);
 
         await setPluginSetting('oauth', 'allowPublicRegistration', false);
-        await setPluginSetting('oauth', 'disableEmailSending', true);
 
         requester = await getTestServer(true);
 
@@ -111,6 +113,29 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
     // User registration - no app
     it('Registering a user with correct data and no app returns a 200', async () => {
+        nock('https://api.sparkpost.com')
+            .post('/api/v1/transmissions', (body) => {
+                const expectedRequestBody = {
+                    content: {
+                        template_id: 'confirm-user'
+                    },
+                    recipients: [
+                        {
+                            address: {
+                                email: 'someemail@gmail.com'
+                            }
+                        }
+                    ]
+                };
+
+                return (
+                    body.substitution_data.urlConfirm.match(/http.\/\/tower\.dev:5037\/auth\/confirm\/[\w*]/) &&
+                    body.content.template_id === expectedRequestBody.content.template_id &&
+                    body.recipients[0].address.email === expectedRequestBody.recipients[0].address.email
+                );
+            })
+            .reply(200);
+
         const missingUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.not.exist(missingUser);
 
@@ -200,6 +225,29 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
     // User registration - with app
     it('Registering a user with correct data and app returns a 200', async () => {
+        nock('https://api.sparkpost.com')
+            .post('/api/v1/transmissions', (body) => {
+                const expectedRequestBody = {
+                    content: {
+                        template_id: 'confirm-user'
+                    },
+                    recipients: [
+                        {
+                            address: {
+                                email: 'someotheremail@gmail.com'
+                            }
+                        }
+                    ]
+                };
+
+                return (
+                    body.substitution_data.urlConfirm.match(/http.\/\/tower\.dev:5037\/auth\/confirm\/[\w*]/) &&
+                    body.content.template_id === expectedRequestBody.content.template_id &&
+                    body.recipients[0].address.email === expectedRequestBody.recipients[0].address.email
+                );
+            })
+            .reply(200);
+
         const missingUser = await UserTempModel.findOne({ email: 'someotheremail@gmail.com' }).exec();
         should.not.exist(missingUser);
 
