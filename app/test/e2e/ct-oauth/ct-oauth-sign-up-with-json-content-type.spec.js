@@ -19,6 +19,8 @@ const connection = mongoose.createConnection(mongoUri);
 let UserModel;
 let UserTempModel;
 
+nock.disableNetConnect();
+nock.enableNetConnect(process.env.HOST_IP);
 
 describe('OAuth endpoints tests - Sign up with JSON content type', () => {
 
@@ -102,6 +104,7 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
     });
 
     it('Registering a user with different passwords returns a 422 error', async () => {
+
         const response = await requester
             .post(`/auth/sign-up`)
             .set('Content-Type', 'application/json')
@@ -123,6 +126,29 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
 
     // User registration - no app
     it('Registering a user with correct data and no app returns a 200', async () => {
+        nock('https://api.sparkpost.com')
+            .post('/api/v1/transmissions', (body) => {
+                const expectedRequestBody = {
+                    content: {
+                        template_id: 'confirm-user'
+                    },
+                    recipients: [
+                        {
+                            address: {
+                                email: 'someemail@gmail.com'
+                            }
+                        }
+                    ]
+                };
+
+                return (
+                    body.substitution_data.urlConfirm.match(/http.\/\/tower\.dev:5037\/auth\/confirm\/[\w*]/) &&
+                    body.content.template_id === expectedRequestBody.content.template_id &&
+                    body.recipients[0].address.email === expectedRequestBody.recipients[0].address.email
+                );
+            })
+            .reply(200);
+
         const missingUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.not.exist(missingUser);
 
@@ -188,17 +214,6 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
             .send();
 
         response.status.should.equal(200);
-        response.header['content-type'].should.equal('application/json; charset=utf-8');
-        // eslint-disable-next-line
-        response.should.have.property('body').and.not.be.empty;
-
-        const responseUser = response.body;
-        responseUser.should.have.property('email').and.equal('someemail@gmail.com');
-        responseUser.should.have.property('role').and.equal('USER');
-        responseUser.should.have.property('extraUserData').and.be.an('object');
-        // eslint-disable-next-line
-        responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.be.empty;
-
 
         const missingTempUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.not.exist(missingTempUser);
@@ -235,6 +250,29 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
 
     // User registration - with app
     it('Registering a user with correct data and app returns a 200', async () => {
+        nock('https://api.sparkpost.com')
+            .post('/api/v1/transmissions', (body) => {
+                const expectedRequestBody = {
+                    content: {
+                        template_id: 'confirm-user'
+                    },
+                    recipients: [
+                        {
+                            address: {
+                                email: 'someotheremail@gmail.com'
+                            }
+                        }
+                    ]
+                };
+
+                return (
+                    body.substitution_data.urlConfirm.match(/http.\/\/tower\.dev:5037\/auth\/confirm\/[\w*]/) &&
+                    body.content.template_id === expectedRequestBody.content.template_id &&
+                    body.recipients[0].address.email === expectedRequestBody.recipients[0].address.email
+                );
+            })
+            .reply(200);
+
         const missingUser = await UserTempModel.findOne({ email: 'someotheremail@gmail.com' }).exec();
         should.not.exist(missingUser);
 
@@ -280,9 +318,6 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
             .send();
 
         response.status.should.equal(200);
-        response.header['content-type'].should.equal('application/json; charset=utf-8');
-        response.body.should.have.property('email').and.equal('someotheremail@gmail.com');
-        response.body.should.have.property('role').and.equal('USER');
 
         const missingTempUser = await UserTempModel.findOne({ email: 'someotheremail@gmail.com' }).exec();
         should.not.exist(missingTempUser);

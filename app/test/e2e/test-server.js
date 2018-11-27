@@ -20,10 +20,6 @@ exports.getTestServer = async function getTestServer(forceNew = false) {
         return requester;
     }
 
-    nock(`${process.env.CT_URL}`)
-        .post(`/api/v1/microservice`)
-        .reply(200);
-
     const serverPromise = require('../../src/app');
     const { server } = await serverPromise();
     requester = chai.request(server).keepOpen();

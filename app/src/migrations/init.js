@@ -137,6 +137,15 @@ module.exports = async function init() {
                 active: true,
                 sparkpostKey: process.env.SPARKPOST_KEY,
                 confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
+                gfw: {
+                    confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
+                },
+                rw: {
+                    confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
+                },
+                prep: {
+                    confirmUrlRedirect: process.env.CONFIRM_URL_REDIRECT,
+                }
             },
             basic: {
                 active: false,

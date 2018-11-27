@@ -19,6 +19,7 @@ env:
     - COOKIE_DOMAIN=mymachine
     - SESSION_KEY=test
     - PUBLIC_URL=http://tower.dev:5037
+    - SPARKPOST_KEY=fakeSparkpostKey
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter

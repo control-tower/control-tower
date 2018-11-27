@@ -1,8 +1,8 @@
 const Plugin = require('models/plugin.model');
 const mongoose = require('mongoose');
 const config = require('config');
-const mongoUri = process.env.CT_MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
 
+const mongoUri = process.env.CT_MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
 
 async function setPluginSetting(pluginName, settingKey, settingValue) {
     return new Promise((resolve, reject) => {
@@ -16,18 +16,20 @@ async function setPluginSetting(pluginName, settingKey, settingValue) {
                 reject(`Plugin '${pluginName}' could not be found.`);
             }
 
-            const obj = {};
-            obj[settingKey] = settingValue;
+            const newConfig = {};
+            const pluginObjkey = `config.${settingKey}`;
+            newConfig[pluginObjkey] = settingValue;
 
-            plugin.config = Object.assign({}, plugin.config, obj);
-
-            return plugin.save().then(resolve);
+            return Plugin.update({ name: pluginName }, { $set: newConfig }).exec().then(resolve);
         }
 
         mongoose.connect(mongoUri, onDbReady);
     });
 }
 
+const getUUID = () => Math.random().toString(36).substring(7);
+
 module.exports = {
-    setPluginSetting
+    setPluginSetting,
+    getUUID
 };
