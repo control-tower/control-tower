@@ -48,7 +48,7 @@ describe('Auth endpoints tests', () => {
         response.redirects.should.be.an('array').and.length(0);
     });
 
-    it('Logging in successfully with POST /auth/login with callbackUrl should redirect to the callback page - JSON request', async () => {
+    it('Logging in successfully with POST /auth/login with callbackUrl should not redirect to the callback page - JSON request', async () => {
         await new UserModel({
             __v: 0,
             email: 'test@example.com',

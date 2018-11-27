@@ -28,9 +28,6 @@ describe('OAuth endpoints tests - Recover password', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        // We need to force-start the server, to ensure mongo has plugin info we can manipulate in the next instruction
-        await getTestServer(true);
-
         requester = await getTestServer(true);
 
         UserModel = userModelFunc(connection);
@@ -175,8 +172,6 @@ describe('OAuth endpoints tests - Recover password', () => {
 
         UserModel.deleteMany({}).exec();
         UserTempModel.deleteMany({}).exec();
-
-        await requester.close();
     });
 
     afterEach(() => {

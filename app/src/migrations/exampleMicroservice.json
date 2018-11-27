@@ -1,29 +1,37 @@
 {
-    "name": "Usuarios",
-    "active": true,
-    "url": "http://localhost:8080",
-    "pathInfo": "/info.json"
-    "endpoints:[{
-        "path":"/users",
-        "owner": "users",
-        "method": "GET",
-        "redirect":[{
-            "method":"GET",
-            "host": "http://localhost:5555",
-            "path": "/api/v1/users"
-        },
-        "filters":[{
-            "name": "test",
-            "url": "/datasets/:dataset",
-            "params":[{
-                "dataset": "dataset"
-            }],
-            "compare":{
-                "provider": "carto"
+  "name": "Users",
+  "active": true,
+  "url": "http://localhost:8080",
+  "pathInfo": "/info.json",
+  "endpoints": [
+    {
+      "path": "/users",
+      "owner": "users",
+      "method": "GET",
+      "redirect": [
+        {
+          "method": "GET",
+          "host": "http://localhost:5555",
+          "path": "/api/v1/users"
+        }
+      ],
+      "filters": [
+        {
+          "name": "test",
+          "url": "/datasets/:dataset",
+          "params": [
+            {
+              "dataset": "dataset"
             }
-        }]
-    }],
-    "swagger":{
-        "miswagger":{}
+          ],
+          "compare": {
+            "provider": "carto"
+          }
+        }
+      ]
     }
+  ],
+  "swagger": {
+    "myswagger": {}
+  }
 }

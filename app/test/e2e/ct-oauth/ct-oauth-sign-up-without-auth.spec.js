@@ -185,8 +185,6 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
             .send();
 
         response.status.should.equal(200);
-        response.body.should.have.property('email').and.equal('someemail@gmail.com');
-        response.body.should.have.property('role').and.equal('USER');
 
         const missingTempUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.not.exist(missingTempUser);
@@ -278,8 +276,6 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
             .send();
 
         response.status.should.equal(200);
-        response.body.should.have.property('email').and.equal('someotheremail@gmail.com');
-        response.body.should.have.property('role').and.equal('USER');
 
         const missingTempUser = await UserTempModel.findOne({ email: 'someotheremail@gmail.com' }).exec();
         should.not.exist(missingTempUser);

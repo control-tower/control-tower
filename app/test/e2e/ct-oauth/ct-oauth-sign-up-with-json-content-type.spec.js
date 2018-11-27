@@ -214,17 +214,6 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
             .send();
 
         response.status.should.equal(200);
-        response.header['content-type'].should.equal('application/json; charset=utf-8');
-        // eslint-disable-next-line
-        response.should.have.property('body').and.not.be.empty;
-
-        const responseUser = response.body;
-        responseUser.should.have.property('email').and.equal('someemail@gmail.com');
-        responseUser.should.have.property('role').and.equal('USER');
-        responseUser.should.have.property('extraUserData').and.be.an('object');
-        // eslint-disable-next-line
-        responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.be.empty;
-
 
         const missingTempUser = await UserTempModel.findOne({ email: 'someemail@gmail.com' }).exec();
         should.not.exist(missingTempUser);
@@ -329,9 +318,6 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
             .send();
 
         response.status.should.equal(200);
-        response.header['content-type'].should.equal('application/json; charset=utf-8');
-        response.body.should.have.property('email').and.equal('someotheremail@gmail.com');
-        response.body.should.have.property('role').and.equal('USER');
 
         const missingTempUser = await UserTempModel.findOne({ email: 'someotheremail@gmail.com' }).exec();
         should.not.exist(missingTempUser);
