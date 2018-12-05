@@ -135,7 +135,7 @@ describe('Auth endpoints tests', () => {
         response.body.errors[0].detail.should.equal('Invalid email or password');
     });
 
-    it('Logging in at /auth/login valid credentials should redirect to the success page', async () => {
+    it('Logging in at /auth/login with valid credentials should return a 200 HTTP code and the user details', async () => {
         await new UserModel({
             __v: 0,
             email: 'test@example.com',
