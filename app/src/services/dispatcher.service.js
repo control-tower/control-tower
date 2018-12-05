@@ -280,12 +280,12 @@ class Dispatcher {
         logger.debug('Endpoint found');
         logger.debug('Checking if authentication is necessary');
         if (endpoint.authenticated && !Dispatcher.getLoggedUser(ctx)) {
-            logger.info('Is necessary authentication but the request is not authenticated');
+            logger.info('Authentication is needed but no user data was found in the request');
             throw new NotAuthenticated();
         }
 
         if (endpoint.applicationRequired && !ctx.state.appKey) {
-            logger.info('Is necessary application-key but the request does not contain it');
+            logger.info('Application key is needed but none was found in the request');
             throw new NotApplicationKey('Required app_key');
         }
         let redirectEndpoint = null;
