@@ -58,7 +58,7 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
         response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
-    it('Registering a user without the actual data returns a 200 error (TODO: this should return a 422)', async () => {
+    it('Registering a user without the actual data returns a 422 error - JSON version', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
             .set('Content-Type', 'application/json')
@@ -71,7 +71,7 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
         response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
     });
 
-    it('Registering a user with partial data returns a 200 error', async () => {
+    it('Registering a user with partial data returns a 422 error', async () => {
         const response = await requester
             .post(`/auth/sign-up`)
             .set('Content-Type', 'application/json')
@@ -84,23 +84,6 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].status.should.equal(422);
         response.body.errors[0].detail.should.equal('Email, Password and Repeat password are required');
-    });
-
-    it('Registering a user with different passwords returns a 422 error', async () => {
-        const response = await requester
-            .post(`/auth/sign-up`)
-            .set('Content-Type', 'application/json')
-            .send({
-                email: 'someemail@gmail.com',
-                password: 'somepassword',
-                repeatPassword: 'anotherpassword'
-            });
-
-        response.status.should.equal(422);
-        response.header['content-type'].should.equal('application/json; charset=utf-8');
-        response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].status.should.equal(422);
-        response.body.errors[0].detail.should.equal('Password and Repeat password not equal');
     });
 
     it('Registering a user with different passwords returns a 422 error', async () => {
@@ -124,7 +107,6 @@ describe('OAuth endpoints tests - Sign up with JSON content type', () => {
         should.not.exist(tempUser);
     });
 
-    // User registration - no app
     it('Registering a user with correct data and no app returns a 200', async () => {
         nock('https://api.sparkpost.com')
             .post('/api/v1/transmissions', (body) => {

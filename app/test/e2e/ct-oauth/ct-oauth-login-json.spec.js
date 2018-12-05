@@ -37,18 +37,105 @@ describe('Auth endpoints tests', () => {
         nock.cleanAll();
     });
 
-    it('Visiting GET /auth/login with callbackUrl while being logged in should return a 200 - JSON request', async () => {
+    // Default HTML request behavior
+    it('Visiting /auth while not logged in should redirect to the login page', async () => {
         const response = await requester
-            .get(`/auth/login?callbackUrl=https://www.wikipedia.org`)
+            .get(`/auth`)
+            .set('Content-Type', 'application/json')
+            .send();
+
+        response.status.should.equal(200);
+        response.header['content-type'].should.equal('text/html; charset=utf-8');
+        response.redirects.should.be.an('array').and.length(1);
+        response.redirects[0].should.match(/\/auth\/login$/);
+    });
+
+    // Default HTML request behavior
+    it('Visiting /auth while logged in should redirect to the success page', async () => {
+        const response = await requester
+            .get(`/auth`)
             .set('Content-Type', 'application/json')
             .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
             .send();
 
         response.status.should.equal(200);
-        response.redirects.should.be.an('array').and.length(0);
+        response.redirects.should.be.an('array').and.length(2);
+        response.redirects[0].should.match(/\/auth\/login$/);
+        response.redirects[1].should.match(/\/auth\/success$/);
     });
 
-    it('Logging in successfully with POST /auth/login with callbackUrl should not redirect to the callback page - JSON request', async () => {
+    // Default HTML request behavior
+    it('Visiting /auth with callbackUrl while being logged in should redirect to the callback page', async () => {
+        const response = await requester
+            .get(`/auth?callbackUrl=https://www.wikipedia.org`)
+            .set('Content-Type', 'application/json')
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
+            .send();
+
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(2);
+        response.redirects[0].should.match(/\/auth\/login$/);
+        response.redirects[1].should.match(/\/auth\/success$/);
+    });
+
+    it('Visiting /auth/login while not being logged in should show you the login page', async () => {
+        const response = await requester
+            .get(`/auth/login`)
+            .set('Content-Type', 'application/json')
+            .send();
+
+        response.status.should.equal(401);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(401);
+        response.body.errors[0].detail.should.equal('Not logged in');
+    });
+
+    it('Logging in at /auth/login with no credentials should display the error messages', async () => {
+        const response = await requester
+            .post(`/auth/login`)
+            .set('Content-Type', 'application/json')
+            .send();
+
+        response.status.should.equal(401);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(401);
+        response.body.errors[0].detail.should.equal('Invalid email or password');
+    });
+
+    it('Logging in at /auth/login with email and no password should display the error messages', async () => {
+        const response = await requester
+            .post(`/auth/login`)
+            .set('Content-Type', 'application/json')
+            .send({
+                email: 'test@example.com',
+            });
+
+        response.status.should.equal(401);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(401);
+        response.body.errors[0].detail.should.equal('Invalid email or password');
+    });
+
+    it('Logging in at /auth/login with invalid credentials (account does not exist) should display the error messages', async () => {
+        const response = await requester
+            .post(`/auth/login`)
+            .set('Content-Type', 'application/json')
+            .send({
+                email: 'test@example.com',
+                password: 'potato'
+            });
+
+        response.status.should.equal(401);
+        response.header['content-type'].should.equal('application/json; charset=utf-8');
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].status.should.equal(401);
+        response.body.errors[0].detail.should.equal('Invalid email or password');
+    });
+
+    it('Logging in at /auth/login valid credentials should redirect to the success page', async () => {
         await new UserModel({
             __v: 0,
             email: 'test@example.com',
@@ -63,6 +150,37 @@ describe('Auth endpoints tests', () => {
             provider: 'local'
         }).save();
 
+        const response = await requester
+            .post(`/auth/login`)
+            .set('Content-Type', 'application/json')
+            .send({
+                email: 'test@example.com',
+                password: 'potato'
+            });
+
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(0);
+
+        const responseUser = response.body.data;
+        responseUser.should.have.property('email').and.equal('test@example.com');
+        responseUser.should.have.property('role').and.equal('USER');
+        responseUser.should.have.property('extraUserData').and.be.an('object');
+        responseUser.should.have.property('token').and.be.an('string').and.not.be.empty;
+        // eslint-disable-next-line
+        responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.contain    });
+
+    it('Visiting GET /auth/login with callbackUrl while being logged in should return a 200', async () => {
+        const response = await requester
+            .get(`/auth/login?callbackUrl=https://www.wikipedia.org`)
+            .set('Content-Type', 'application/json')
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
+            .send();
+
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(0);
+    });
+
+    it('Logging in successfully with POST /auth/login with callbackUrl should not redirect to the callback page', async () => {
         const response = await requester
             .post(`/auth/login?callbackUrl=https://www.wikipedia.org`)
             .set('Content-Type', 'application/json')
@@ -83,7 +201,7 @@ describe('Auth endpoints tests', () => {
         responseUser.extraUserData.should.have.property('apps').and.be.an('array').and.contain('rw');
     });
 
-    it('Log in failure with /auth/login in should redirect to the failure page - JSON request', async () => {
+    it('Log in failure with /auth/login in should redirect to the failure page', async () => {
         const response = await requester
             .post(`/auth/login?callbackUrl=https://www.wikipedia.org`)
             .set('Content-Type', 'application/json')

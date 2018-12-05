@@ -71,28 +71,59 @@ describe('Auth endpoints tests', () => {
         response.redirects[1].should.match(/\/auth\/success$/);
     });
 
-    it('Visiting /auth/login with callbackUrl while not being logged in should redirect to the callback page - HTML request', async () => {
+    it('Visiting /auth/login while not being logged in should show you the login page', async () => {
         const response = await requester
-            .get(`/auth/login?callbackUrl=https://www.wikipedia.org`)
+            .get(`/auth/login`)
             .send();
 
         response.status.should.equal(200);
         response.redirects.should.be.an('array').and.length(0);
+        response.text.should.contain('Login');
         response.text.should.not.contain('Login correct');
     });
 
-    it('Visiting /auth/login with callbackUrl while being logged in should redirect to the callback page - HTML request', async () => {
+    it('Logging in at /auth/login with no credentials should display the error messages', async () => {
         const response = await requester
-            .get(`/auth/login?callbackUrl=https://www.wikipedia.org`)
-            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
+            .post(`/auth/login`)
+            .type('form')
             .send();
 
         response.status.should.equal(200);
         response.redirects.should.be.an('array').and.length(1);
-        response.redirects[0].should.match(/\/auth\/success$/);
+        response.redirects[0].should.match(/\/auth\/fail\?error=true$/);
+        response.text.should.contain('Email or password invalid');
     });
 
-    it('Logging in successfully with /auth/login with callbackUrl should redirect to the callback page - HTML request', async () => {
+    it('Logging in at /auth/login with email and no password should display the error messages', async () => {
+        const response = await requester
+            .post(`/auth/login`)
+            .type('form')
+            .send({
+                email: 'test@example.com',
+            });
+
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(1);
+        response.redirects[0].should.match(/\/auth\/fail\?error=true$/);
+        response.text.should.contain('Email or password invalid');
+    });
+
+    it('Logging in at /auth/login with invalid credentials (account does not exist) should display the error messages', async () => {
+        const response = await requester
+            .post(`/auth/login`)
+            .type('form')
+            .send({
+                email: 'test@example.com',
+                password: 'potato'
+            });
+
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(1);
+        response.redirects[0].should.match(/\/auth\/fail\?error=true$/);
+        response.text.should.contain('Email or password invalid');
+    });
+
+    it('Logging in at /auth/login valid credentials should redirect to the success page', async () => {
         await new UserModel({
             __v: 0,
             email: 'test@example.com',
@@ -107,7 +138,32 @@ describe('Auth endpoints tests', () => {
             provider: 'local'
         }).save();
 
+        const response = await requester
+            .post(`/auth/login`)
+            .type('form')
+            .send({
+                email: 'test@example.com',
+                password: 'potato'
+            });
 
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(1);
+        response.redirects[0].should.match(/\/auth\/success$/);
+        response.text.should.contain('Login correct');
+    });
+
+    it('Visiting /auth/login with callbackUrl while being logged in should redirect to the callback page', async () => {
+        const response = await requester
+            .get(`/auth/login?callbackUrl=https://www.wikipedia.org`)
+            .set('Authorization', `Bearer ${TOKENS.ADMIN}`)
+            .send();
+
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(1);
+        response.redirects[0].should.match(/\/auth\/success$/);
+    });
+
+    it('Logging in successfully with /auth/login with callbackUrl should redirect to the callback page', async () => {
         const response = await requester
             .post(`/auth/login?callbackUrl=https://www.wikipedia.org`)
             .type('form')
