@@ -6,7 +6,7 @@ const config = require('config');
 const userModelFunc = require('ct-oauth-plugin/lib/models/user.model');
 const userTempModelFunc = require('ct-oauth-plugin/lib/models/user-temp.model');
 
-const { getTestServer } = require('./../test-server');
+const { getTestAgent, closeTestAgent } = require('./../test-server');
 const { getUUID, setPluginSetting } = require('./../utils');
 
 const should = chai.should();
@@ -29,14 +29,14 @@ describe('OAuth endpoints tests - Confirm account', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        await getTestServer(true);
+        await getTestAgent(true);
 
         await setPluginSetting('oauth', 'local.confirmUrlRedirect', null);
         await setPluginSetting('oauth', 'local.gfw.confirmUrlRedirect', null);
         await setPluginSetting('oauth', 'local.rw.confirmUrlRedirect', null);
         await setPluginSetting('oauth', 'local.prep.confirmUrlRedirect', null);
 
-        requester = await getTestServer(true);
+        requester = await getTestAgent(true);
 
         UserModel = userModelFunc(connection);
         UserTempModel = userTempModelFunc(connection);
@@ -126,7 +126,7 @@ describe('OAuth endpoints tests - Confirm account', () => {
     it('Confirm account request with valid token and a configured global redirect should return HTTP 200 and the redirect URL', async () => {
         await setPluginSetting('oauth', 'local.confirmUrlRedirect', 'http://www.google.com/');
 
-        requester = await getTestServer(true);
+        requester = await getTestAgent(true);
 
         const confirmationToken = getUUID();
         await new UserTempModel({
@@ -164,7 +164,7 @@ describe('OAuth endpoints tests - Confirm account', () => {
         await setPluginSetting('oauth', 'local.prep.confirmUrlRedirect', 'https://www.prepdata.org/');
         await setPluginSetting('oauth', 'local.confirmUrlRedirect', 'http://www.google.com/');
 
-        requester = await getTestServer(true);
+        requester = await getTestAgent(true);
 
         const confirmationToken = getUUID();
         await new UserTempModel({
@@ -202,7 +202,7 @@ describe('OAuth endpoints tests - Confirm account', () => {
         await setPluginSetting('oauth', 'local.prep.confirmUrlRedirect', 'https://www.prepdata.org/');
         await setPluginSetting('oauth', 'local.confirmUrlRedirect', 'http://www.google.com/');
 
-        requester = await getTestServer(true);
+        requester = await getTestAgent(true);
 
         const confirmationToken = getUUID();
         await new UserTempModel({
@@ -240,7 +240,7 @@ describe('OAuth endpoints tests - Confirm account', () => {
         await setPluginSetting('oauth', 'local.prep.confirmUrlRedirect', 'https://www.prepdata.org/');
         await setPluginSetting('oauth', 'local.confirmUrlRedirect', 'http://www.google.com/');
 
-        requester = await getTestServer(true);
+        requester = await getTestAgent(true);
 
         const confirmationToken = getUUID();
         await new UserTempModel({
@@ -278,6 +278,8 @@ describe('OAuth endpoints tests - Confirm account', () => {
 
         UserModel.deleteMany({}).exec();
         UserTempModel.deleteMany({}).exec();
+
+        closeTestAgent();
     });
 
     afterEach(() => {
