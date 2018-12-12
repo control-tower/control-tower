@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const config = require('config');
 const userModelFunc = require('ct-oauth-plugin/lib/models/user.model');
 
-const { getTestServer } = require('./../test-server');
+const { getTestAgent, closeTestAgent } = require('./../test-server');
 const { TOKENS } = require('./../test.constants');
 
 const should = chai.should();
@@ -27,13 +27,15 @@ describe('Auth endpoints tests', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        requester = await getTestServer();
-
         UserModel = userModelFunc(connection);
 
         UserModel.deleteMany({}).exec();
 
         nock.cleanAll();
+    });
+
+    beforeEach(async () => {
+        requester = await getTestAgent(true);
     });
 
     it('Visiting /auth while not logged in should redirect to the login page', async () => {
@@ -66,7 +68,7 @@ describe('Auth endpoints tests', () => {
             .send();
 
         response.status.should.equal(200);
-        response.redirects.should.be.an('array').and.length(2);
+        response.redirects.should.be.an('array').and.length(3);
         response.redirects[0].should.match(/\/auth\/login$/);
         response.redirects[1].should.match(/\/auth\/success$/);
     });
@@ -159,13 +161,18 @@ describe('Auth endpoints tests', () => {
             .send();
 
         response.status.should.equal(200);
-        response.redirects.should.be.an('array').and.length(1);
+        response.redirects.should.be.an('array').and.length(2);
         response.redirects[0].should.match(/\/auth\/success$/);
+        response.redirects[1].should.equal('https://www.wikipedia.org/');
     });
 
     it('Logging in successfully with /auth/login with callbackUrl should redirect to the callback page', async () => {
+        await requester
+            .get(`/auth/login?callbackUrl=https://www.wikipedia.org`)
+            .send();
+
         const response = await requester
-            .post(`/auth/login?callbackUrl=https://www.wikipedia.org`)
+            .post(`/auth/login`)
             .type('form')
             .send({
                 email: 'test@example.com',
@@ -173,8 +180,29 @@ describe('Auth endpoints tests', () => {
             });
 
         response.status.should.equal(200);
-        response.redirects.should.be.an('array').and.length(1);
+        response.redirects.should.be.an('array').and.length(2);
         response.redirects[0].should.match(/\/auth\/success$/);
+        response.redirects[1].should.equal('https://www.wikipedia.org/');
+    });
+
+    it('Logging in successfully with /auth/login with callbackUrl and token=true should redirect to the callback page and pass the token', async () => {
+        await requester
+            .get(`/auth/login?callbackUrl=https://www.wikipedia.org&token=true`)
+            .send();
+
+        const response = await requester
+            .post(`/auth/login`)
+            .type('form')
+            .send({
+                email: 'test@example.com',
+                password: 'potato'
+            });
+
+        response.status.should.equal(200);
+        response.redirects.should.be.an('array').and.length(2);
+        response.redirects[0].should.match(/\/auth\/success$/);
+        response.redirects[1].should.match(/https:\/\/www\.wikipedia\.org\/\?token=(\w.)+/);
+        response.redirects[1].should.not.match(/null$/);
     });
 
     it('Log in failure with /auth/login in should redirect to the failure page - HTTP request', async () => {
@@ -201,5 +229,7 @@ describe('Auth endpoints tests', () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
+
+        closeTestAgent();
     });
 });

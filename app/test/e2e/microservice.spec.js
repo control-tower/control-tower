@@ -5,7 +5,7 @@ const chai = require('chai');
 const Microservice = require('models/microservice.model');
 const Endpoint = require('models/endpoint.model');
 
-const { getTestServer } = require('./test-server');
+const { getTestAgent, closeTestAgent } = require('./test-server');
 const { TOKENS } = require('./test.constants');
 
 const should = chai.should();
@@ -20,7 +20,7 @@ describe('Microservices endpoints', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        requester = await getTestServer();
+        requester = await getTestAgent();
 
         Microservice.deleteMany({}).exec();
         Endpoint.deleteMany({}).exec();
@@ -315,5 +315,7 @@ describe('Microservices endpoints', () => {
     after(() => {
         Microservice.deleteMany({}).exec();
         Endpoint.deleteMany({}).exec();
+
+        closeTestAgent();
     });
 });

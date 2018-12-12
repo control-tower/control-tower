@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const config = require('config');
 const userModelFunc = require('ct-oauth-plugin/lib/models/user.model');
 
-const { getTestServer } = require('./../test-server');
+const { getTestAgent, closeTestAgent } = require('./../test-server');
 const { TOKENS } = require('./../test.constants');
 
 const should = chai.should();
@@ -28,7 +28,7 @@ describe('Auth endpoints tests', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        requester = await getTestServer();
+        requester = await getTestAgent();
 
         UserModel = userModelFunc(connection);
 
@@ -73,9 +73,10 @@ describe('Auth endpoints tests', () => {
             .send();
 
         response.status.should.equal(200);
-        response.redirects.should.be.an('array').and.length(2);
+        response.redirects.should.be.an('array').and.length(3);
         response.redirects[0].should.match(/\/auth\/login$/);
         response.redirects[1].should.match(/\/auth\/success$/);
+        response.redirects[2].should.equal('https://www.wikipedia.org/');
     });
 
     it('Visiting /auth/login while not being logged in should show you the login page', async () => {
@@ -221,6 +222,8 @@ describe('Auth endpoints tests', () => {
         const UserModel = userModelFunc(connection);
 
         UserModel.deleteMany({}).exec();
+
+        closeTestAgent();
     });
 
     afterEach(() => {

@@ -7,7 +7,7 @@ const userModelFunc = require('ct-oauth-plugin/lib/models/user.model');
 const userTempModelFunc = require('ct-oauth-plugin/lib/models/user-temp.model');
 
 const { setPluginSetting } = require('./../utils');
-const { getTestServer } = require('./../test-server');
+const { getTestAgent, closeTestAgent } = require('./../test-server');
 
 const should = chai.should();
 
@@ -30,11 +30,11 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
         }
 
         // We need to force-start the server, to ensure mongo has plugin info we can manipulate in the next instruction
-        await getTestServer(true);
+        await getTestAgent(true);
 
         await setPluginSetting('oauth', 'allowPublicRegistration', true);
 
-        requester = await getTestServer(true);
+        requester = await getTestAgent(true);
 
         UserModel = userModelFunc(connection);
         UserTempModel = userTempModelFunc(connection);
@@ -294,6 +294,8 @@ describe('OAuth endpoints tests - Sign up without auth', () => {
 
         UserModel.deleteMany({}).exec();
         UserTempModel.deleteMany({}).exec();
+
+        closeTestAgent();
     });
 
     afterEach(() => {

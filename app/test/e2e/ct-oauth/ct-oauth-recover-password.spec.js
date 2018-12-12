@@ -6,7 +6,7 @@ const config = require('config');
 const userModelFunc = require('ct-oauth-plugin/lib/models/user.model');
 const userTempModelFunc = require('ct-oauth-plugin/lib/models/user-temp.model');
 
-const { getTestServer } = require('./../test-server');
+const { getTestAgent, closeTestAgent } = require('./../test-server');
 
 const should = chai.should();
 
@@ -28,7 +28,7 @@ describe('OAuth endpoints tests - Recover password', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        requester = await getTestServer(true);
+        requester = await getTestAgent(true);
 
         UserModel = userModelFunc(connection);
         UserTempModel = userTempModelFunc(connection);
@@ -172,6 +172,8 @@ describe('OAuth endpoints tests - Recover password', () => {
 
         UserModel.deleteMany({}).exec();
         UserTempModel.deleteMany({}).exec();
+
+        closeTestAgent();
     });
 
     afterEach(() => {
