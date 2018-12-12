@@ -27,8 +27,6 @@ describe('Auth endpoints tests', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        requester = await getTestAgent(true);
-
         UserModel = userModelFunc(connection);
 
         UserModel.deleteMany({}).exec();
@@ -36,8 +34,11 @@ describe('Auth endpoints tests', () => {
         nock.cleanAll();
     });
 
-    it('Visiting /auth while not logged in should redirect to the login page', async () => {
+    beforeEach(async () => {
+        requester = await getTestAgent(true);
+    });
 
+    it('Visiting /auth while not logged in should redirect to the login page', async () => {
         const response = await requester
             .get(`/auth`)
             .send();
@@ -184,7 +185,7 @@ describe('Auth endpoints tests', () => {
         response.redirects[1].should.equal('https://www.wikipedia.org/');
     });
 
-    it('Logging in successfully with /auth/login with callbackUrl should redirect to the callback page', async () => {
+    it('Logging in successfully with /auth/login with callbackUrl and token=true should redirect to the callback page and pass the token', async () => {
         await requester
             .get(`/auth/login?callbackUrl=https://www.wikipedia.org&token=true`)
             .send();
@@ -201,6 +202,7 @@ describe('Auth endpoints tests', () => {
         response.redirects.should.be.an('array').and.length(2);
         response.redirects[0].should.match(/\/auth\/success$/);
         response.redirects[1].should.match(/https:\/\/www\.wikipedia\.org\/\?token=(\w.)+/);
+        response.redirects[1].should.not.match(/null$/);
     });
 
     it('Log in failure with /auth/login in should redirect to the failure page - HTTP request', async () => {
@@ -221,13 +223,13 @@ describe('Auth endpoints tests', () => {
         const UserModel = userModelFunc(connection);
 
         UserModel.deleteMany({}).exec();
-
-        closeTestAgent();
     });
 
     afterEach(() => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
+
+        closeTestAgent();
     });
 });
