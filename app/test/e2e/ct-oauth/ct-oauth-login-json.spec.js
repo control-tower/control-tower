@@ -163,6 +163,7 @@ describe('Auth endpoints tests', () => {
         response.redirects.should.be.an('array').and.length(0);
 
         const responseUser = response.body.data;
+        responseUser.should.have.property('id').and.be.an('string').and.not.be.empty;
         responseUser.should.have.property('email').and.equal('test@example.com');
         responseUser.should.have.property('role').and.equal('USER');
         responseUser.should.have.property('extraUserData').and.be.an('object');
